@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup Test - Kwikr Directory</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow">
+        <h1 class="text-2xl font-bold mb-4">Signup Test</h1>
+        
+        <form id="testSignupForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium">First Name</label>
+                <input id="firstName" type="text" value="Test" class="w-full p-2 border rounded">
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Last Name</label>
+                <input id="lastName" type="text" value="User" class="w-full p-2 border rounded">
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Email</label>
+                <input id="signupEmail" type="email" value="test@example.com" class="w-full p-2 border rounded">
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Password</label>
+                <input id="signupPassword" type="password" value="testpass123" class="w-full p-2 border rounded">
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Province</label>
+                <select id="province" class="w-full p-2 border rounded">
+                    <option value="ON" selected>Ontario</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium">City</label>
+                <input id="city" type="text" value="Toronto" class="w-full p-2 border rounded">
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Business Name</label>
+                <input id="businessName" type="text" value="Test Business" class="w-full p-2 border rounded">
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Business Email</label>
+                <input id="businessEmail" type="email" value="business@test.com" class="w-full p-2 border rounded">
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Phone</label>
+                <input id="phone" type="tel" value="416-555-1234" class="w-full p-2 border rounded">
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Service Type</label>
+                <select id="serviceType" class="w-full p-2 border rounded">
+                    <option value="Cleaning Services" selected>Cleaning Services</option>
+                </select>
+            </div>
+            <div>
+                <input id="agreeTerms" type="checkbox" checked>
+                <label for="agreeTerms">I agree to terms</label>
+            </div>
+            <button type="submit" class="w-full bg-green-600 text-white p-2 rounded">
+                Test Signup
+            </button>
+        </form>
+        
+        <div id="result" class="mt-4 p-3 hidden rounded"></div>
+    </div>
+
+    <script>
+        document.getElementById('testSignupForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'mt-4 p-3 rounded bg-blue-100';
+            resultDiv.textContent = 'Testing signup...';
+            resultDiv.classList.remove('hidden');
+            
+            const formData = {
+                firstName: document.getElementById('firstName').value.trim(),
+                lastName: document.getElementById('lastName').value.trim(),
+                email: document.getElementById('signupEmail').value.trim(),
+                password: document.getElementById('signupPassword').value,
+                role: 'worker',
+                province: document.getElementById('province').value,
+                city: document.getElementById('city').value.trim(),
+                businessName: document.getElementById('businessName').value.trim(),
+                businessEmail: document.getElementById('businessEmail').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                serviceType: document.getElementById('serviceType').value
+            };
+            
+            console.log('Submitting form data:', formData);
+            
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                console.log('Response:', data);
+                
+                if (response.ok && data.success) {
+                    resultDiv.className = 'mt-4 p-3 rounded bg-green-100 text-green-800';
+                    resultDiv.innerHTML = `
+                        <strong>SUCCESS!</strong><br>
+                        User ID: ${data.userId}<br>
+                        Email: ${data.user.email}<br>
+                        Role: ${data.user.role}<br>
+                        Session Token: ${data.session_token ? 'Created' : 'Missing'}
+                    `;
+                } else {
+                    resultDiv.className = 'mt-4 p-3 rounded bg-red-100 text-red-800';
+                    resultDiv.innerHTML = `
+                        <strong>ERROR!</strong><br>
+                        Status: ${response.status}<br>
+                        Message: ${data.error || data.message || 'Unknown error'}
+                    `;
+                }
+            } catch (error) {
+                console.error('Signup error:', error);
+                resultDiv.className = 'mt-4 p-3 rounded bg-red-100 text-red-800';
+                resultDiv.innerHTML = `
+                    <strong>NETWORK ERROR!</strong><br>
+                    ${error.message}
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

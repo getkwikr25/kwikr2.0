@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Core dumps and large files
+core
+core.*
+
+# Compiled binary addons (https://nodejs.org/api/addons.html)
+build
+.wrangler/
+
+# dotenv environment variables file
+.env
+.dev.vars
+
+# PM2
+.pm2/
+pids/
+logs/
+*.log
+
+# Backup files
+*.backup
+*.bak
+*.tar.gz
+*.zip
+
+# Test files
+*test*.sql
+fix_*.sql
+
+# Temporary files
+/tmp/
+temp/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

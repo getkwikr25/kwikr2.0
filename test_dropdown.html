@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dropdown Test</title>
+</head>
+<body>
+    <h1>Test Cascading Dropdown Functionality</h1>
+    <p>This page will test the cascading dropdown functionality by making API calls directly.</p>
+    
+    <div>
+        <h3>Test Results:</h3>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        async function testCascadingDropdowns() {
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                // Test 1: All provinces (no filter)
+                resultsDiv.innerHTML += '<p><strong>Test 1:</strong> Loading all provinces...</p>';
+                const response1 = await fetch('/api/provinces/counts');
+                const data1 = await response1.json();
+                resultsDiv.innerHTML += `<p>✅ All provinces: ${data1.provinces?.length || 0} provinces found</p>`;
+                
+                // Test 2: Plumbing provinces
+                resultsDiv.innerHTML += '<p><strong>Test 2:</strong> Loading provinces for Plumbing...</p>';
+                const response2 = await fetch('/api/provinces/counts?serviceType=Plumbing');
+                const data2 = await response2.json();
+                resultsDiv.innerHTML += `<p>✅ Plumbing provinces: ${data2.provinces?.length || 0} provinces found</p>`;
+                
+                if (data2.provinces && data2.provinces.length > 0) {
+                    const firstProvince = data2.provinces[0];
+                    resultsDiv.innerHTML += `<p>First province: ${firstProvince.name} with ${firstProvince.count} workers</p>`;
+                    
+                    // Test 3: Cities in first province for Plumbing
+                    resultsDiv.innerHTML += '<p><strong>Test 3:</strong> Loading cities for ' + firstProvince.name + ' Plumbing...</p>';
+                    const response3 = await fetch(`/api/cities/counts?serviceType=Plumbing&province=${firstProvince.province}`);
+                    const data3 = await response3.json();
+                    resultsDiv.innerHTML += `<p>✅ Cities in ${firstProvince.name}: ${data3.cities?.length || 0} cities found</p>`;
+                    
+                    if (data3.cities && data3.cities.length > 0) {
+                        const totalCityCount = data3.cities.reduce((sum, city) => sum + city.count, 0);
+                        resultsDiv.innerHTML += `<p>City counts sum: ${totalCityCount} (should equal ${firstProvince.count})</p>`;
+                        if (totalCityCount === firstProvince.count) {
+                            resultsDiv.innerHTML += '<p>✅ <strong>COUNTS MATCH!</strong> Filtering is accurate.</p>';
+                        } else {
+                            resultsDiv.innerHTML += '<p>❌ <strong>COUNTS MISMATCH!</strong> There may be an issue.</p>';
+                        }
+                    }
+                }
+                
+                // Test 4: Heating provinces (should be different)
+                resultsDiv.innerHTML += '<p><strong>Test 4:</strong> Loading provinces for Heating...</p>';
+                const response4 = await fetch('/api/provinces/counts?serviceType=Heating');
+                const data4 = await response4.json();
+                resultsDiv.innerHTML += `<p>✅ Heating provinces: ${data4.provinces?.length || 0} provinces found</p>';
+                
+                if (data4.provinces && data4.provinces.length > 0) {
+                    resultsDiv.innerHTML += '<p>Heating provinces: ' + data4.provinces.map(p => `${p.name} (${p.count})`).join(', ') + '</p>';
+                }
+                
+                resultsDiv.innerHTML += '<p><strong>✅ All tests completed!</strong></p>';
+                
+            } catch (error) {
+                resultsDiv.innerHTML += `<p>❌ Error: ${error.message}</p>`;
+            }
+        }
+        
+        // Run tests when page loads
+        window.addEventListener('load', testCascadingDropdowns);
+    </script>
+</body>
+</html>

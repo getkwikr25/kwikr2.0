@@ -1,0 +1,157 @@
+province,category,license_required,license_name,issuing_authority,renewal_period_years,wsib_required,insurance_minimum,additional_requirements
+AB,Construction,true,Certificate of Qualification (Red Seal),Alberta Apprenticeship and Industry Training,5,true,2000000,"Safety certification required"
+AB,Plumbing,true,Journeyman Plumber Certificate,Alberta Apprenticeship and Industry Training,3,true,2000000,"Backflow prevention certification"
+AB,Electrical,true,Journeyman Electrician Certificate,Alberta Apprenticeship and Industry Training,3,true,2000000,"Alberta Safety Codes Council registration"
+AB,HVAC,true,Gas Technician Certificate,Technical Safety BC,2,true,2000000,"Refrigerant handling license"
+AB,Roofing,false,,N/A,N/A,true,1000000,"WCB coverage mandatory"
+AB,Landscaping,false,,N/A,N/A,true,1000000,
+AB,Cleaning,false,,N/A,N/A,true,500000,
+AB,Moving,false,,N/A,N/A,true,1000000,"Motor Carrier License if operating commercial vehicles"
+AB,Handyman,false,,N/A,N/A,true,1000000,
+AB,Painting,false,,N/A,N/A,true,1000000,
+AB,Flooring,false,,N/A,N/A,true,1000000,
+AB,Carpentry,false,,N/A,N/A,true,1000000,
+BC,Construction,true,Certificate of Qualification (Red Seal),Industry Training Authority BC,5,true,2000000,"WorkSafeBC registration required"
+BC,Plumbing,true,Plumbing Contractor License,Technical Safety BC,1,true,2000000,"Plumbing permit authority"
+BC,Electrical,true,Electrical Contractor License,Technical Safety BC,1,true,2000000,"Electrical Safety Authority registration"
+BC,HVAC,true,Gas Contractor License,Technical Safety BC,1,true,2000000,"Refrigerant handling certificate"
+BC,Roofing,false,,N/A,N/A,true,1000000,"WorkSafeBC coverage mandatory"
+BC,Landscaping,false,,N/A,N/A,true,1000000,"Pesticide applicator license if using chemicals"
+BC,Cleaning,false,,N/A,N/A,true,500000,
+BC,Moving,false,,N/A,N/A,true,1000000,"Commercial Vehicle Operating Certificate if required"
+BC,Handyman,false,,N/A,N/A,true,1000000,
+BC,Painting,false,,N/A,N/A,true,1000000,
+BC,Flooring,false,,N/A,N/A,true,1000000,
+BC,Carpentry,false,,N/A,N/A,true,1000000,
+ON,Construction,true,Certificate of Qualification,Ontario College of Trades,3,true,2000000,"OCOT membership required"
+ON,Plumbing,true,Plumber License,Ontario College of Trades,3,true,2000000,"Municipal license may be required"
+ON,Electrical,true,Electrical Contractor License,Electrical Safety Authority,3,true,2000000,"ESA registration mandatory"
+ON,HVAC,true,Gas Technician License,Technical Standards and Safety Authority,2,true,2000000,"ODP certificate for refrigerants"
+ON,Roofing,false,,N/A,N/A,true,1000000,"WSIB coverage mandatory"
+ON,Landscaping,false,,N/A,N/A,true,1000000,"Pesticide license if using chemicals"
+ON,Cleaning,false,,N/A,N/A,true,500000,
+ON,Moving,false,,N/A,N/A,true,1000000,"CVOR certificate for commercial vehicles"
+ON,Handyman,false,,N/A,N/A,true,1000000,
+ON,Painting,false,,N/A,N/A,true,1000000,
+ON,Flooring,false,,N/A,N/A,true,1000000,
+ON,Carpentry,false,,N/A,N/A,true,1000000,
+QC,Construction,true,Licence d'entrepreneur en construction,Régie du bâtiment du Québec,3,true,2000000,"RBQ license mandatory"
+QC,Plumbing,true,Licence de plombier,Corporation des maîtres mécaniciens,5,true,2000000,"Professional corporation membership"
+QC,Electrical,true,Licence d'électricien,Corporation des maîtres électriciens,5,true,2000000,"CMEQ membership required"
+QC,HVAC,true,Licence de mécanicien en réfrigération,Corporation des techniciens en réfrigération,2,true,2000000,"Refrigerant handling certificate"
+QC,Roofing,true,Licence de couvreur,Régie du bâtiment du Québec,3,true,1000000,"RBQ specialized license"
+QC,Landscaping,false,,N/A,N/A,true,1000000,"Pesticide permit if using chemicals"
+QC,Cleaning,false,,N/A,N/A,true,500000,
+QC,Moving,false,,N/A,N/A,true,1000000,"SAAQ permit for commercial vehicles"
+QC,Handyman,false,,N/A,N/A,true,1000000,
+QC,Painting,false,,N/A,N/A,true,1000000,
+QC,Flooring,false,,N/A,N/A,true,1000000,
+QC,Carpentry,false,,N/A,N/A,true,1000000,
+SK,Construction,true,Certificate of Qualification,Saskatchewan Apprenticeship Commission,5,true,2000000,"WCB coverage required"
+SK,Plumbing,true,Journeyman Plumber Certificate,Saskatchewan Apprenticeship Commission,3,true,2000000,"Municipal permits required"
+SK,Electrical,true,Electrical Contractor License,Saskatchewan Electrical Contractors Association,3,true,2000000,"SaskPower connection permit"
+SK,HVAC,true,Gas Technician Certificate,Technical Safety Authority of Saskatchewan,2,true,2000000,"Refrigerant handling license"
+SK,Roofing,false,,N/A,N/A,true,1000000,"WCB coverage mandatory"
+SK,Landscaping,false,,N/A,N/A,true,1000000,
+SK,Cleaning,false,,N/A,N/A,true,500000,
+SK,Moving,false,,N/A,N/A,true,1000000,
+SK,Handyman,false,,N/A,N/A,true,1000000,
+SK,Painting,false,,N/A,N/A,true,1000000,
+SK,Flooring,false,,N/A,N/A,true,1000000,
+SK,Carpentry,false,,N/A,N/A,true,1000000,
+MB,Construction,true,Certificate of Qualification,Apprenticeship Manitoba,5,true,2000000,"WCB coverage required"
+MB,Plumbing,true,Plumbing Contractor License,Manitoba Building Officials Association,3,true,2000000,"Municipal license required"
+MB,Electrical,true,Electrical Contractor License,Manitoba Electrical League,3,true,2000000,"Hydro connection permit"
+MB,HVAC,true,Gas Technician License,Manitoba Hydro,2,true,2000000,"Refrigerant handling certificate"
+MB,Roofing,false,,N/A,N/A,true,1000000,"WCB coverage mandatory"
+MB,Landscaping,false,,N/A,N/A,true,1000000,
+MB,Cleaning,false,,N/A,N/A,true,500000,
+MB,Moving,false,,N/A,N/A,true,1000000,
+MB,Handyman,false,,N/A,N/A,true,1000000,
+MB,Painting,false,,N/A,N/A,true,1000000,
+MB,Flooring,false,,N/A,N/A,true,1000000,
+MB,Carpentry,false,,N/A,N/A,true,1000000,
+NB,Construction,true,Certificate of Qualification,Department of Post-Secondary Education,5,true,2000000,"WorkSafeNB coverage required"
+NB,Plumbing,true,Plumber License,Department of Public Safety,3,true,2000000,"Municipal permits required"
+NB,Electrical,true,Electrical Contractor License,New Brunswick Power,3,true,2000000,"NB Power connection permit"
+NB,HVAC,true,Gas Technician License,Technical Inspection Services,2,true,2000000,
+NB,Roofing,false,,N/A,N/A,true,1000000,"WorkSafeNB coverage mandatory"
+NB,Landscaping,false,,N/A,N/A,true,1000000,
+NB,Cleaning,false,,N/A,N/A,true,500000,
+NB,Moving,false,,N/A,N/A,true,1000000,
+NB,Handyman,false,,N/A,N/A,true,1000000,
+NB,Painting,false,,N/A,N/A,true,1000000,
+NB,Flooring,false,,N/A,N/A,true,1000000,
+NB,Carpentry,false,,N/A,N/A,true,1000000,
+NS,Construction,true,Certificate of Qualification,Nova Scotia Apprenticeship Agency,5,true,2000000,"WCB Nova Scotia coverage required"
+NS,Plumbing,true,Plumber License,Nova Scotia Utility and Review Board,3,true,2000000,"Municipal permits required"
+NS,Electrical,true,Electrical Contractor License,Nova Scotia Power,3,true,2000000,"Electrical Installation Permit"
+NS,HVAC,true,Gas Technician License,Nova Scotia Utility and Review Board,2,true,2000000,
+NS,Roofing,false,,N/A,N/A,true,1000000,"WCB coverage mandatory"
+NS,Landscaping,false,,N/A,N/A,true,1000000,
+NS,Cleaning,false,,N/A,N/A,true,500000,
+NS,Moving,false,,N/A,N/A,true,1000000,
+NS,Handyman,false,,N/A,N/A,true,1000000,
+NS,Painting,false,,N/A,N/A,true,1000000,
+NS,Flooring,false,,N/A,N/A,true,1000000,
+NS,Carpentry,false,,N/A,N/A,true,1000000,
+PE,Construction,true,Certificate of Qualification,Department of Workforce and Advanced Learning,5,true,2000000,"WCB PEI coverage required"
+PE,Plumbing,true,Plumber License,Department of Transportation and Infrastructure,3,true,2000000,"Municipal permits required"
+PE,Electrical,true,Electrical Contractor License,Maritime Electric,3,true,2000000,
+PE,HVAC,true,Gas Technician License,Department of Transportation and Infrastructure,2,true,2000000,
+PE,Roofing,false,,N/A,N/A,true,1000000,"WCB coverage mandatory"
+PE,Landscaping,false,,N/A,N/A,true,1000000,
+PE,Cleaning,false,,N/A,N/A,true,500000,
+PE,Moving,false,,N/A,N/A,true,1000000,
+PE,Handyman,false,,N/A,N/A,true,1000000,
+PE,Painting,false,,N/A,N/A,true,1000000,
+PE,Flooring,false,,N/A,N/A,true,1000000,
+PE,Carpentry,false,,N/A,N/A,true,1000000,
+NL,Construction,true,Certificate of Qualification,Department of Immigration,5,true,2000000,"WorkplaceNL coverage required"
+NL,Plumbing,true,Plumber License,Department of Municipal Affairs,3,true,2000000,"Municipal permits required"
+NL,Electrical,true,Electrical Contractor License,Newfoundland Power,3,true,2000000,
+NL,HVAC,true,Gas Technician License,Department of Digital Government,2,true,2000000,
+NL,Roofing,false,,N/A,N/A,true,1000000,"WorkplaceNL coverage mandatory"
+NL,Landscaping,false,,N/A,N/A,true,1000000,
+NL,Cleaning,false,,N/A,N/A,true,500000,
+NL,Moving,false,,N/A,N/A,true,1000000,
+NL,Handyman,false,,N/A,N/A,true,1000000,
+NL,Painting,false,,N/A,N/A,true,1000000,
+NL,Flooring,false,,N/A,N/A,true,1000000,
+NL,Carpentry,false,,N/A,N/A,true,1000000,
+YT,Construction,true,Certificate of Qualification,Department of Education,5,true,2000000,"YHSIB coverage required"
+YT,Plumbing,true,Plumber License,Department of Community Services,3,true,2000000,"Municipal permits required"
+YT,Electrical,true,Electrical Contractor License,Yukon Electrical Company,3,true,2000000,
+YT,HVAC,true,Gas Technician License,Department of Community Services,2,true,2000000,
+YT,Roofing,false,,N/A,N/A,true,1000000,"YHSIB coverage mandatory"
+YT,Landscaping,false,,N/A,N/A,true,1000000,
+YT,Cleaning,false,,N/A,N/A,true,500000,
+YT,Moving,false,,N/A,N/A,true,1000000,
+YT,Handyman,false,,N/A,N/A,true,1000000,
+YT,Painting,false,,N/A,N/A,true,1000000,
+YT,Flooring,false,,N/A,N/A,true,1000000,
+YT,Carpentry,false,,N/A,N/A,true,1000000,
+NT,Construction,true,Certificate of Qualification,Department of Education,5,true,2000000,"WSCC coverage required"
+NT,Plumbing,true,Plumber License,Department of Municipal and Community Affairs,3,true,2000000,"Municipal permits required"
+NT,Electrical,true,Electrical Contractor License,Northwest Territories Power Corporation,3,true,2000000,
+NT,HVAC,true,Gas Technician License,Department of Infrastructure,2,true,2000000,
+NT,Roofing,false,,N/A,N/A,true,1000000,"WSCC coverage mandatory"
+NT,Landscaping,false,,N/A,N/A,true,1000000,
+NT,Cleaning,false,,N/A,N/A,true,500000,
+NT,Moving,false,,N/A,N/A,true,1000000,
+NT,Handyman,false,,N/A,N/A,true,1000000,
+NT,Painting,false,,N/A,N/A,true,1000000,
+NT,Flooring,false,,N/A,N/A,true,1000000,
+NT,Carpentry,false,,N/A,N/A,true,1000000,
+NU,Construction,true,Certificate of Qualification,Department of Family Services,5,true,2000000,"WCB coverage required"
+NU,Plumbing,true,Plumber License,Department of Community and Government Services,3,true,2000000,"Municipal permits required"
+NU,Electrical,true,Electrical Contractor License,Nunavut Power Corporation,3,true,2000000,
+NU,HVAC,true,Gas Technician License,Department of Community and Government Services,2,true,2000000,
+NU,Roofing,false,,N/A,N/A,true,1000000,"WCB coverage mandatory"
+NU,Landscaping,false,,N/A,N/A,true,1000000,
+NU,Cleaning,false,,N/A,N/A,true,500000,
+NU,Moving,false,,N/A,N/A,true,1000000,
+NU,Handyman,false,,N/A,N/A,true,1000000,
+NU,Painting,false,,N/A,N/A,true,1000000,
+NU,Flooring,false,,N/A,N/A,true,1000000,
+NU,Carpentry,false,,N/A,N/A,true,1000000
