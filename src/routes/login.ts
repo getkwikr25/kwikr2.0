@@ -191,22 +191,52 @@ loginRoutes.get('/', async (c) => {
             });
 
             // Demo login function
-            function demoLogin(userType) {
-                let email, password;
+            async function demoLogin(userType) {
+                const button = document.querySelector(`[onclick="demoLogin('${userType}')"]`);
+                const originalText = button.innerHTML;
                 
-                if (userType === 'client') {
-                    email = 'client1@kwikr.ca';
-                    password = 'password123';
-                } else if (userType === 'worker') {
-                    email = 'cleaner1@kwikr.ca'; 
-                    password = 'password123';
+                try {
+                    // Show loading state
+                    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Logging in...';
+                    button.disabled = true;
+                    
+                    // Call demo login API
+                    const response = await fetch('/api/auth/demo-login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ role: userType })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        // Server should have set session cookie automatically
+                        // Redirect to appropriate dashboard
+                        if (userType === 'client') {
+                            window.location.href = '/dashboard/client';
+                        } else if (userType === 'worker') {
+                            window.location.href = '/dashboard/worker';
+                        } else if (userType === 'admin') {
+                            window.location.href = '/dashboard/admin';
+                        }
+                    } else {
+                        const error = await response.json();
+                        alert('Demo login failed: ' + (error.error || 'Please try again'));
+                        
+                        // Restore button state
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                    }
+                } catch (error) {
+                    console.error('Demo login error:', error);
+                    alert('Demo login failed. Please try again.');
+                    
+                    // Restore button state
+                    button.innerHTML = originalText;
+                    button.disabled = false;
                 }
-                
-                document.getElementById('loginEmail').value = email;
-                document.getElementById('loginPassword').value = password;
-                
-                // Auto-submit the form
-                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
             }
         </script>
     </body>

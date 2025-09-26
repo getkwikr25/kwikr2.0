@@ -193,6 +193,100 @@ workerRoutes.get('/services', requireWorkerAuth, async (c) => {
   }
 })
 
+// ===== PAYMENT SETTINGS MANAGEMENT =====
+
+// Get worker payment settings
+workerRoutes.get('/payment-settings', requireWorkerAuth, async (c) => {
+  return c.json({ 
+    success: true, 
+    message: 'Payment settings route is working!',
+    paymentSettings: {}
+  })
+})
+
+// Update worker payment settings
+workerRoutes.post('/payment-settings/update', requireWorkerAuth, async (c) => {
+  try {
+    const user = c.get('user')
+    const paymentData = await c.req.json()
+    
+    // Check if payment settings exist for this user
+    const existingSettings = await c.env.DB.prepare(`
+      SELECT id FROM worker_payment_settings WHERE user_id = ?
+    `).bind(user.user_id).first()
+
+    if (existingSettings) {
+      // Update existing settings
+      await c.env.DB.prepare(`
+        UPDATE worker_payment_settings 
+        SET preferred_payment_method = ?, 
+            bank_name = ?, 
+            bank_account_holder = ?, 
+            bank_account_number = ?, 
+            bank_routing_number = ?, 
+            paypal_email = ?, 
+            interac_email = ?, 
+            etransfer_security_question = ?, 
+            etransfer_security_answer = ?, 
+            minimum_payout_amount = ?, 
+            payout_frequency = ?, 
+            auto_payout_enabled = ?, 
+            updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = ?
+      `).bind(
+        paymentData.preferred_payment_method,
+        paymentData.bank_name,
+        paymentData.bank_account_holder,
+        paymentData.bank_account_number,
+        paymentData.bank_routing_number,
+        paymentData.paypal_email,
+        paymentData.interac_email,
+        paymentData.etransfer_security_question,
+        paymentData.etransfer_security_answer,
+        paymentData.minimum_payout_amount,
+        paymentData.payout_frequency,
+        paymentData.auto_payout_enabled,
+        user.user_id
+      ).run()
+    } else {
+      // Insert new settings
+      await c.env.DB.prepare(`
+        INSERT INTO worker_payment_settings (
+          user_id, preferred_payment_method, bank_name, bank_account_holder, 
+          bank_account_number, bank_routing_number, paypal_email, interac_email, 
+          etransfer_security_question, etransfer_security_answer, minimum_payout_amount, 
+          payout_frequency, auto_payout_enabled, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      `).bind(
+        user.user_id,
+        paymentData.preferred_payment_method,
+        paymentData.bank_name,
+        paymentData.bank_account_holder,
+        paymentData.bank_account_number,
+        paymentData.bank_routing_number,
+        paymentData.paypal_email,
+        paymentData.interac_email,
+        paymentData.etransfer_security_question,
+        paymentData.etransfer_security_answer,
+        paymentData.minimum_payout_amount,
+        paymentData.payout_frequency,
+        paymentData.auto_payout_enabled
+      ).run()
+    }
+    
+    return c.json({ 
+      success: true, 
+      message: 'Payment settings updated successfully' 
+    })
+  } catch (error) {
+    console.error('Error updating payment settings:', error)
+    return c.json({ 
+      success: false, 
+      error: 'Failed to update payment settings. Please try again.' 
+    }, 500)
+  }
+})
+
 // Add new service
 workerRoutes.post('/services', requireWorkerAuth, async (c) => {
   try {

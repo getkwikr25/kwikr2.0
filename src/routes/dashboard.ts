@@ -303,12 +303,16 @@ const requireAuth = async (c: any, next: any) => {
             // New format: demo-client:timestamp:reliable
             role = parts[0].replace('demo-', '')
             timestamp = parts[1]
-            demoUserId = role === 'client' ? 1 : role === 'worker' ? 2 : 3
+            demoUserId = role === 'client' ? 939 : role === 'worker' ? 938 : 942
           } else if (!isNaN(parseInt(parts[0]))) {
             // Old format: userId:timestamp:random
             demoUserId = parseInt(parts[0])
             timestamp = parts[1]
-            role = demoUserId === 1 ? 'client' : demoUserId === 4 ? 'worker' : 'admin'
+            // Map actual user IDs to roles
+            if (demoUserId === 939) role = 'client'      // MO CARTY
+            else if (demoUserId === 938) role = 'worker' // JO CARTY  
+            else if (demoUserId === 942) role = 'admin'  // Platform Administrator
+            else role = demoUserId === 1 ? 'client' : demoUserId === 4 ? 'worker' : 'admin' // Legacy fallback
           }
           
           // Validate demo session with proper security checks
@@ -316,12 +320,19 @@ const requireAuth = async (c: any, next: any) => {
           const maxAge = 24 * 60 * 60 * 1000 // 24 hours
           
           if (role && timestamp && demoUserId && sessionAge < maxAge && ['client', 'worker', 'admin'].includes(role)) {
+            // Use real user data based on ID
+            const userData = demoUserId === 939 ? 
+              { first_name: 'MO', last_name: 'CARTY', email: 'mo.carty@admin.kwikr.ca' } :
+              demoUserId === 938 ? 
+              { first_name: 'JO', last_name: 'CARTY', email: 'jo.carty@admin.kwikr.ca' } :
+              { first_name: 'Platform', last_name: 'Administrator', email: 'admin@kwikrdirectory.com' }
+            
             session = {
               user_id: demoUserId,
               role: role,
-              first_name: 'Demo',
-              last_name: role.charAt(0).toUpperCase() + role.slice(1),
-              email: `demo.${role}@kwikr.ca`,
+              first_name: userData.first_name,
+              last_name: userData.last_name,
+              email: userData.email,
               is_verified: 1,
               expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
               created_at: new Date().toISOString(),
@@ -6340,189 +6351,11 @@ dashboardRoutes.get('/worker/payments', requireAuth, requireWorkerSubscription, 
             }
         </script>
     </body>
-                    <span class="text-gray-600">Payment Management</span>
-                </nav>
-            </div>
-
-            <!-- Page Header -->
-            <div class="mb-8">
-                <h1 class="text-3xl font-bold text-gray-900">Payment Management</h1>
-                <p class="text-gray-600 mt-2">Manage your payment methods and transaction settings</p>
-            </div>
-
-            <!-- Payment Methods -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Current Payment Methods -->
-                <div class="bg-white rounded-lg shadow">
-                    <div class="p-6">
-                        <div class="flex justify-between items-center mb-6">
-                            <h2 class="text-xl font-semibold text-gray-900">Payment Methods</h2>
-                            <button class="bg-kwikr-green text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
-                                <i class="fas fa-plus mr-2"></i>Add Method
-                            </button>
-                        </div>
-
-                        <!-- Bank Account -->
-                        <div class="border border-gray-200 rounded-lg p-4 mb-4">
-                            <div class="flex justify-between items-start">
-                                <div class="flex items-center">
-                                    <i class="fas fa-university text-kwikr-green text-xl mr-3"></i>
-                                    <div>
-                                        <h3 class="font-medium text-gray-900">Bank Account</h3>
-                                        <p class="text-sm text-gray-600">****1234 - Primary</p>
-                                    </div>
-                                </div>
-                                <button class="text-gray-400 hover:text-gray-600">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- PayPal -->
-                        <div class="border border-gray-200 rounded-lg p-4">
-                            <div class="flex justify-between items-center">
-                                <div class="flex items-center">
-                                    <i class="fab fa-paypal text-blue-600 text-xl mr-3"></i>
-                                    <div>
-                                        <h3 class="font-medium text-gray-900">PayPal</h3>
-                                        <p class="text-sm text-gray-600">Not connected</p>
-                                    </div>
-                                </div>
-                                <button class="text-kwikr-green hover:text-green-600 text-sm font-medium">
-                                    Connect
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Payment Settings -->
-                <div class="bg-white rounded-lg shadow">
-                    <div class="p-6">
-                        <h2 class="text-xl font-semibold text-gray-900 mb-6">Payment Settings</h2>
-
-                        <div class="space-y-6">
-                            <!-- Auto-withdrawal -->
-                            <div>
-                                <div class="flex justify-between items-center">
-                                    <div>
-                                        <h3 class="font-medium text-gray-900">Auto-withdrawal</h3>
-                                        <p class="text-sm text-gray-600">Automatically transfer earnings to your bank account</p>
-                                    </div>
-                                    <label class="flex items-center cursor-pointer">
-                                        <input type="checkbox" class="sr-only" checked>
-                                        <div class="relative">
-                                            <div class="w-10 h-6 bg-kwikr-green rounded-full shadow-inner"></div>
-                                            <div class="absolute w-4 h-4 bg-white rounded-full shadow left-1 top-1 transform translate-x-4"></div>
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <!-- Withdrawal Frequency -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Withdrawal Frequency</label>
-                                <select class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-kwikr-green focus:border-kwikr-green">
-                                    <option>Weekly</option>
-                                    <option>Bi-weekly</option>
-                                    <option>Monthly</option>
-                                </select>
-                            </div>
-
-                            <!-- Minimum Balance -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Minimum Balance for Withdrawal</label>
-                                <div class="relative">
-                                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
-                                    <input type="number" value="25" min="10" step="5" 
-                                           class="w-full border border-gray-300 rounded-md pl-8 pr-3 py-2 focus:outline-none focus:ring-kwikr-green focus:border-kwikr-green">
-                                </div>
-                            </div>
-
-                            <!-- Tax Information -->
-                            <div>
-                                <h3 class="font-medium text-gray-900 mb-2">Tax Information</h3>
-                                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                                    <div class="flex items-start">
-                                        <i class="fas fa-exclamation-triangle text-yellow-600 mr-3 mt-1"></i>
-                                        <div>
-                                            <p class="text-sm text-yellow-800">Tax forms required</p>
-                                            <p class="text-sm text-yellow-700">Please complete your tax information to receive payments.</p>
-                                            <button class="text-yellow-800 hover:underline text-sm font-medium mt-1">
-                                                Complete Tax Forms →
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Transactions -->
-            <div class="mt-8 bg-white rounded-lg shadow">
-                <div class="p-6">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-6">Recent Transactions</h2>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead>
-                                <tr class="border-b border-gray-200">
-                                    <th class="text-left py-3 text-sm font-medium text-gray-700">Date</th>
-                                    <th class="text-left py-3 text-sm font-medium text-gray-700">Description</th>
-                                    <th class="text-left py-3 text-sm font-medium text-gray-700">Amount</th>
-                                    <th class="text-left py-3 text-sm font-medium text-gray-700">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                <tr>
-                                    <td class="py-3 text-sm text-gray-900">Jan 15, 2024</td>
-                                    <td class="py-3 text-sm text-gray-900">Job Payment - Plumbing Repair</td>
-                                    <td class="py-3 text-sm text-gray-900">$185.00</td>
-                                    <td class="py-3">
-                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="py-3 text-sm text-gray-900">Jan 12, 2024</td>
-                                    <td class="py-3 text-sm text-gray-900">Weekly Withdrawal</td>
-                                    <td class="py-3 text-sm text-gray-900">$450.00</td>
-                                    <td class="py-3">
-                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="py-3 text-sm text-gray-900">Jan 10, 2024</td>
-                                    <td class="py-3 text-sm text-gray-900">Job Payment - Kitchen Installation</td>
-                                    <td class="py-3 text-sm text-gray-900">$275.00</td>
-                                    <td class="py-3">
-                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Scripts -->
-        <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
-        <script src="/static/app.js"></script>
-        <script>
-          window.currentUser = {
-            id: ${user.user_id},
-            email: "${user.email}",
-            role: "${user.role}",
-            firstName: "${user.first_name}",
-            lastName: "${user.last_name}"
-          };
-        </script>
-    </body>
     </html>
   `)
 })
+
+// Worker Earnings & Tracking Dashboard
 
 // Worker Earnings & Tracking Dashboard
 dashboardRoutes.get('/worker/earnings', requireAuth, async (c) => {
@@ -8455,6 +8288,173 @@ dashboardRoutes.post('/api/worker/payment-settings/update', requireAuth, require
     return c.json({ 
       success: false, 
       error: 'Failed to update payment settings. Please try again.' 
+    }, 500)
+  }
+})
+
+// API endpoint for getting worker compliance data
+dashboardRoutes.get('/api/worker/compliance', requireAuth, requireWorkerSubscription, async (c) => {
+  const user = c.get('user')
+  
+  if (user.role !== 'worker') {
+    return c.json({ success: false, error: 'Unauthorized' }, 403)
+  }
+
+  try {
+    // Get worker compliance data
+    const compliance = await c.env.DB.prepare(`
+      SELECT * FROM worker_compliance WHERE user_id = ?
+    `).bind(user.user_id).first()
+    
+    return c.json({ 
+      success: true, 
+      compliance: compliance || {}
+    })
+  } catch (error) {
+    console.error('Error fetching compliance data:', error)
+    return c.json({ 
+      success: false, 
+      error: 'Failed to fetch compliance data' 
+    }, 500)
+  }
+})
+
+// API endpoint for updating worker compliance data
+dashboardRoutes.post('/api/worker/compliance/update', requireAuth, requireWorkerSubscription, async (c) => {
+  const user = c.get('user')
+  
+  if (user.role !== 'worker') {
+    return c.json({ success: false, error: 'Unauthorized' }, 403)
+  }
+
+  try {
+    const complianceData = await c.req.json()
+    
+    // Check if compliance record exists for this user
+    const existingCompliance = await c.env.DB.prepare(`
+      SELECT id FROM worker_compliance WHERE user_id = ?
+    `).bind(user.user_id).first()
+
+    if (existingCompliance) {
+      // Update existing compliance record
+      await c.env.DB.prepare(`
+        UPDATE worker_compliance 
+        SET wsib_number = ?, 
+            wsib_valid_until = ?, 
+            insurance_provider = ?, 
+            insurance_policy_number = ?, 
+            insurance_valid_until = ?, 
+            license_type = ?, 
+            license_number = ?, 
+            license_valid_until = ?, 
+            updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = ?
+      `).bind(
+        complianceData.wsib_number,
+        complianceData.wsib_valid_until,
+        complianceData.insurance_provider,
+        complianceData.insurance_policy_number,
+        complianceData.insurance_valid_until,
+        complianceData.license_type,
+        complianceData.license_number,
+        complianceData.license_valid_until,
+        user.user_id
+      ).run()
+    } else {
+      // Insert new compliance record
+      await c.env.DB.prepare(`
+        INSERT INTO worker_compliance (
+          user_id, wsib_number, wsib_valid_until, insurance_provider, 
+          insurance_policy_number, insurance_valid_until, license_type, 
+          license_number, license_valid_until, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      `).bind(
+        user.user_id,
+        complianceData.wsib_number,
+        complianceData.wsib_valid_until,
+        complianceData.insurance_provider,
+        complianceData.insurance_policy_number,
+        complianceData.insurance_valid_until,
+        complianceData.license_type,
+        complianceData.license_number,
+        complianceData.license_valid_until
+      ).run()
+    }
+    
+    return c.json({ 
+      success: true, 
+      message: 'Compliance information updated successfully' 
+    })
+  } catch (error) {
+    console.error('Error updating compliance data:', error)
+    return c.json({ 
+      success: false, 
+      error: 'Failed to update compliance information. Please try again.' 
+    }, 500)
+  }
+})
+
+// API endpoint for adding worker services
+dashboardRoutes.post('/api/worker/services', requireAuth, requireWorkerSubscription, async (c) => {
+  const user = c.get('user')
+  
+  if (user.role !== 'worker') {
+    return c.json({ success: false, error: 'Unauthorized' }, 403)
+  }
+
+  try {
+    const serviceData = await c.req.json()
+    
+    // Insert new service
+    await c.env.DB.prepare(`
+      INSERT INTO worker_services (
+        user_id, service_category, service_name, hourly_rate, 
+        description, is_available, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    `).bind(
+      user.user_id,
+      serviceData.category,
+      serviceData.service_name,
+      serviceData.hourly_rate,
+      serviceData.description
+    ).run()
+    
+    return c.json({ 
+      success: true, 
+      message: 'Service added successfully' 
+    })
+  } catch (error) {
+    console.error('Error adding service:', error)
+    return c.json({ 
+      success: false, 
+      error: 'Failed to add service. Please try again.' 
+    }, 500)
+  }
+})
+
+// API endpoint for getting worker payment settings
+dashboardRoutes.get('/api/worker/payment-settings', requireAuth, requireWorkerSubscription, async (c) => {
+  const user = c.get('user')
+  
+  if (user.role !== 'worker') {
+    return c.json({ success: false, error: 'Unauthorized' }, 403)
+  }
+
+  try {
+    // Get worker payment settings
+    const paymentSettings = await c.env.DB.prepare(`
+      SELECT * FROM worker_payment_settings WHERE user_id = ?
+    `).bind(user.user_id).first()
+    
+    return c.json({ 
+      success: true, 
+      paymentSettings: paymentSettings || {}
+    })
+  } catch (error) {
+    console.error('Error fetching payment settings:', error)
+    return c.json({ 
+      success: false, 
+      error: 'Failed to fetch payment settings' 
     }, 500)
   }
 })

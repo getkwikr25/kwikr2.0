@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { getCookie, setCookie } from 'hono/cookie'
 import { Logger } from '../utils/logger'
 import { PasswordUtils } from '../utils/crypto'
 
@@ -418,6 +419,7 @@ authRoutes.get('/me', async (c) => {
   }
 })
 
+
 // Demo login for testing (no password required)
 authRoutes.post('/demo-login', async (c) => {
   try {
@@ -427,13 +429,13 @@ authRoutes.post('/demo-login', async (c) => {
       return c.json({ error: 'Valid role is required (client, worker, admin)' }, 400)
     }
     
-    // Create demo user on-the-fly without database dependency
+    // Use the actual accounts you want to test with
     const demoUser = {
-      id: role === 'client' ? 1 : role === 'worker' ? 4 : 50,
-      email: `demo.${role}@kwikr.ca`,
+      id: role === 'client' ? 939 : role === 'worker' ? 938 : 942, // Real account IDs
+      email: role === 'client' ? 'mo.carty@admin.kwikr.ca' : role === 'worker' ? 'jo.carty@admin.kwikr.ca' : 'admin@kwikrdirectory.com',
       role: role,
-      first_name: 'Demo',
-      last_name: role.charAt(0).toUpperCase() + role.slice(1),
+      first_name: role === 'client' ? 'MO' : role === 'worker' ? 'JO' : 'Platform',
+      last_name: role === 'client' ? 'CARTY' : role === 'worker' ? 'CARTY' : 'Administrator',
       province: 'ON',
       city: 'Toronto',
       is_verified: 1,
@@ -452,6 +454,12 @@ authRoutes.post('/demo-login', async (c) => {
     } catch (dbError) {
       console.log('Database session storage failed, continuing with in-memory session')
     }
+    
+    // Set session cookie for browser access using direct header approach
+    const isHttps = c.req.header('x-forwarded-proto') === 'https' || c.req.url.startsWith('https://')
+    
+    // Use direct Set-Cookie header approach that we know works
+    c.header('Set-Cookie', `session=${sessionToken}; Path=/; Max-Age=604800; HttpOnly; SameSite=Lax${isHttps ? '; Secure' : ''}`)
     
     return c.json({
       message: 'Demo login successful',
