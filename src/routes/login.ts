@@ -158,6 +158,7 @@ loginRoutes.get('/', async (c) => {
                         headers: {
                             'Content-Type': 'application/json'
                         },
+                        credentials: 'include', // Essential for cookie handling
                         body: JSON.stringify({ email, password })
                     });
                     
@@ -206,6 +207,7 @@ loginRoutes.get('/', async (c) => {
                         headers: {
                             'Content-Type': 'application/json'
                         },
+                        credentials: 'include', // Essential for cookie handling
                         body: JSON.stringify({ role: userType })
                     });
                     

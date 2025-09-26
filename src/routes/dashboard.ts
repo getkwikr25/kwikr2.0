@@ -816,6 +816,108 @@ dashboardRoutes.get('/client', requireAuth, async (c) => {
 
 // Worker Dashboard
 // Worker subscription selection page (for workers without active subscription)
+// Worker Subscription Management Dashboard
+dashboardRoutes.get('/worker/subscriptions', requireAuth, async (c) => {
+  const user = c.get('user')
+  
+  if (user.role !== 'worker') {
+    return c.redirect('/dashboard')
+  }
+  
+  // Get worker's current subscription
+  const subscription = await c.env.DB.prepare(`
+    SELECT ws.*, sp.plan_name, sp.monthly_price
+    FROM worker_subscriptions ws
+    JOIN subscription_plans sp ON ws.plan_id = sp.id
+    WHERE ws.user_id = ? AND ws.subscription_status = 'active'
+  `).bind(user.user_id).first()
+  
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Subscription Management - Kwikr Directory</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-50">
+        <div class="min-h-screen">
+            <!-- Navigation -->
+            <nav class="bg-white shadow-sm border-b border-gray-200">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between h-16">
+                        <div class="flex items-center">
+                            <a href="/dashboard/worker" class="text-2xl font-bold text-green-600">
+                                <i class="fas fa-bolt mr-2"></i>Kwikr Directory
+                            </a>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <a href="/dashboard/worker" class="text-gray-700 hover:text-green-600">Dashboard</a>
+                            <button onclick="logout()" class="text-red-600 hover:text-red-700">
+                                <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                <div class="px-4 py-6 sm:px-0">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-6">Subscription Management</h1>
+                    
+                    ${subscription ? `
+                    <!-- Current Subscription -->
+                    <div class="bg-white rounded-lg shadow mb-6">
+                        <div class="p-6">
+                            <h2 class="text-xl font-semibold text-gray-900 mb-4">Current Subscription</h2>
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h3 class="text-lg font-medium text-green-800">${subscription.plan_name}</h3>
+                                        <p class="text-green-600">$${subscription.monthly_price}/month</p>
+                                        <p class="text-sm text-green-600">Active subscription</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                            <i class="fas fa-check-circle mr-1"></i>Active
+                                        </span>
+                                        <p class="text-sm text-gray-500 mt-1">Started: ${subscription.start_date}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    ` : `
+                    <!-- No Active Subscription -->
+                    <div class="bg-white rounded-lg shadow mb-6">
+                        <div class="p-6 text-center">
+                            <i class="fas fa-exclamation-triangle text-4xl text-yellow-500 mb-4"></i>
+                            <h2 class="text-xl font-semibold text-gray-900 mb-2">No Active Subscription</h2>
+                            <p class="text-gray-600 mb-4">You need an active subscription to receive job opportunities.</p>
+                            <a href="/dashboard/worker/select-plan" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                                Choose a Plan
+                            </a>
+                        </div>
+                    </div>
+                    `}
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function logout() {
+                if (confirm('Are you sure you want to logout?')) {
+                    window.location.href = '/auth/login'
+                }
+            }
+        </script>
+    </body>
+    </html>
+  `)
+})
+
 dashboardRoutes.get('/worker/select-plan', requireAuth, async (c) => {
   const user = c.get('user')
   

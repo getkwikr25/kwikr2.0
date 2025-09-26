@@ -2511,7 +2511,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
       FROM worker_subscriptions ws
       JOIN subscription_plans sp ON ws.plan_id = sp.id
       WHERE ws.user_id = ? AND ws.subscription_status = 'active'
-    `).bind(s.user_id).first();r||(console.log("Worker has no active subscription, allowing access with limited features"),e.set("subscription",null)),e.set("subscription",r),await t()}catch(r){return console.error("Error checking worker subscription:",r),e.redirect("/dashboard/worker/select-plan")}},X=async(e,t)=>{const s=e.req.path,r=e.req.header("User-Agent")||"unknown",i=e.req.header("Referer")||"unknown";W.info(`Dashboard auth check for ${s}`,{userAgent:r,referer:i,path:s});let a=null;const n=e.req.header("Cookie");if(n){const o=n.match(/session=([^;]+)/);if(o&&(a=o[1],W.debug("Session token found in cookies",{tokenPreview:a.substring(0,10)+"...",path:s})),!a){const l=n.match(/demo_session=([^;]+)/);if(l){const d=l[1],[c,u]=d.split(":"),p=Math.random().toString(36).substring(2,15);a=btoa(`demo-${c}:${u}:${p}`),W.debug("Demo session found in cookies, creating compatible token",{role:c,timestamp:u,path:s})}}}if(!a){const o=e.req.header("Authorization");o&&o.startsWith("Bearer ")&&(a=o.replace("Bearer ",""),W.debug("Session token found in Authorization header",{path:s}))}if(a||(a=e.req.query("token"),a&&W.debug("Session token found in query parameter",{path:s})),!a)return W.warn("No session token found, redirecting to login",{path:s,cookies:n}),e.redirect("/auth/login?return="+encodeURIComponent(s));try{W.debug("Validating session token in database",{tokenPreview:a.substring(0,10)+"...",path:s});let o=null;try{o=await e.env.DB.prepare(`
+    `).bind(s.user_id).first();r||(console.log("Worker has no active subscription, allowing access with limited features"),e.set("subscription",null)),e.set("subscription",r),await t()}catch(r){return console.error("Error checking worker subscription:",r),e.redirect("/dashboard/worker/select-plan")}},Q=async(e,t)=>{const s=e.req.path,r=e.req.header("User-Agent")||"unknown",i=e.req.header("Referer")||"unknown";W.info(`Dashboard auth check for ${s}`,{userAgent:r,referer:i,path:s});let a=null;const n=e.req.header("Cookie");if(n){const o=n.match(/session=([^;]+)/);if(o&&(a=o[1],W.debug("Session token found in cookies",{tokenPreview:a.substring(0,10)+"...",path:s})),!a){const l=n.match(/demo_session=([^;]+)/);if(l){const d=l[1],[c,u]=d.split(":"),p=Math.random().toString(36).substring(2,15);a=btoa(`demo-${c}:${u}:${p}`),W.debug("Demo session found in cookies, creating compatible token",{role:c,timestamp:u,path:s})}}}if(!a){const o=e.req.header("Authorization");o&&o.startsWith("Bearer ")&&(a=o.replace("Bearer ",""),W.debug("Session token found in Authorization header",{path:s}))}if(a||(a=e.req.query("token"),a&&W.debug("Session token found in query parameter",{path:s})),!a)return W.warn("No session token found, redirecting to login",{path:s,cookies:n}),e.redirect("/auth/login?return="+encodeURIComponent(s));try{W.debug("Validating session token in database",{tokenPreview:a.substring(0,10)+"...",path:s});let o=null;try{o=await e.env.DB.prepare(`
         SELECT s.user_id, u.role, u.first_name, u.last_name, u.email, u.is_verified,
                s.expires_at, s.created_at, s.ip_address
         FROM user_sessions s
@@ -2522,7 +2522,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
           FROM user_sessions s
           JOIN users u ON s.user_id = u.id
           WHERE s.session_token = ?
-        `).bind(a).first()}catch{console.log("Database check failed during session validation")}return l?W.warn("Session validation failed - session found but invalid",{userId:l.user_id,email:l.email,expiresAt:l.expires_at,isActive:l.is_active,path:s}):W.warn("Session validation failed - session not found",{tokenPreview:a.substring(0,10)+"...",path:s}),(e.req.header("Accept")||"").includes("application/json")?e.json({error:"Session expired",expired:!0},401):e.redirect("/?session=expired")}W.sessionValidation(!0,a,{userId:o.user_id,email:o.email,role:o.role,sessionCreated:o.created_at,sessionExpires:o.expires_at,sessionSource:o.ip_address,path:s}),e.set("user",o),await t()}catch(o){return W.authError("Auth middleware database error",o,{path:s}),e.redirect("/?session=expired")}};Y.get("/",X,async e=>{switch(e.get("user").role){case"client":return e.redirect("/dashboard/client");case"worker":return e.redirect("/dashboard/worker");case"admin":return e.redirect("/dashboard/admin");default:return e.redirect("/?error=invalid_role")}});Y.get("/client",X,async e=>{const t=e.get("user");if(t.role!=="client")return e.redirect("/dashboard");try{const s=await e.env.DB.prepare(`
+        `).bind(a).first()}catch{console.log("Database check failed during session validation")}return l?W.warn("Session validation failed - session found but invalid",{userId:l.user_id,email:l.email,expiresAt:l.expires_at,isActive:l.is_active,path:s}):W.warn("Session validation failed - session not found",{tokenPreview:a.substring(0,10)+"...",path:s}),(e.req.header("Accept")||"").includes("application/json")?e.json({error:"Session expired",expired:!0},401):e.redirect("/?session=expired")}W.sessionValidation(!0,a,{userId:o.user_id,email:o.email,role:o.role,sessionCreated:o.created_at,sessionExpires:o.expires_at,sessionSource:o.ip_address,path:s}),e.set("user",o),await t()}catch(o){return W.authError("Auth middleware database error",o,{path:s}),e.redirect("/?session=expired")}};Y.get("/",Q,async e=>{switch(e.get("user").role){case"client":return e.redirect("/dashboard/client");case"worker":return e.redirect("/dashboard/worker");case"admin":return e.redirect("/dashboard/admin");default:return e.redirect("/?error=invalid_role")}});Y.get("/client",Q,async e=>{const t=e.get("user");if(t.role!=="client")return e.redirect("/dashboard");try{const s=await e.env.DB.prepare(`
       SELECT j.*, c.name as category_name, c.icon_class,
              (SELECT COUNT(*) FROM bids WHERE job_id = j.id AND status = 'pending') as bid_count,
              w.first_name as worker_first_name, w.last_name as worker_last_name
@@ -2871,7 +2871,95 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
           </div>
       </body>
       </html>
-    `)}});Y.get("/worker/select-plan",X,async e=>{const t=e.get("user");if(t.role!=="worker")return e.redirect("/dashboard");if(await e.env.DB.prepare(`
+    `)}});Y.get("/worker/subscriptions",Q,async e=>{const t=e.get("user");if(t.role!=="worker")return e.redirect("/dashboard");const s=await e.env.DB.prepare(`
+    SELECT ws.*, sp.plan_name, sp.monthly_price
+    FROM worker_subscriptions ws
+    JOIN subscription_plans sp ON ws.plan_id = sp.id
+    WHERE ws.user_id = ? AND ws.subscription_status = 'active'
+  `).bind(t.user_id).first();return e.html(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Subscription Management - Kwikr Directory</title>
+        <script src="https://cdn.tailwindcss.com"><\/script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-50">
+        <div class="min-h-screen">
+            <!-- Navigation -->
+            <nav class="bg-white shadow-sm border-b border-gray-200">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between h-16">
+                        <div class="flex items-center">
+                            <a href="/dashboard/worker" class="text-2xl font-bold text-green-600">
+                                <i class="fas fa-bolt mr-2"></i>Kwikr Directory
+                            </a>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <a href="/dashboard/worker" class="text-gray-700 hover:text-green-600">Dashboard</a>
+                            <button onclick="logout()" class="text-red-600 hover:text-red-700">
+                                <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                <div class="px-4 py-6 sm:px-0">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-6">Subscription Management</h1>
+                    
+                    ${s?`
+                    <!-- Current Subscription -->
+                    <div class="bg-white rounded-lg shadow mb-6">
+                        <div class="p-6">
+                            <h2 class="text-xl font-semibold text-gray-900 mb-4">Current Subscription</h2>
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h3 class="text-lg font-medium text-green-800">${s.plan_name}</h3>
+                                        <p class="text-green-600">$${s.monthly_price}/month</p>
+                                        <p class="text-sm text-green-600">Active subscription</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                            <i class="fas fa-check-circle mr-1"></i>Active
+                                        </span>
+                                        <p class="text-sm text-gray-500 mt-1">Started: ${s.start_date}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    `:`
+                    <!-- No Active Subscription -->
+                    <div class="bg-white rounded-lg shadow mb-6">
+                        <div class="p-6 text-center">
+                            <i class="fas fa-exclamation-triangle text-4xl text-yellow-500 mb-4"></i>
+                            <h2 class="text-xl font-semibold text-gray-900 mb-2">No Active Subscription</h2>
+                            <p class="text-gray-600 mb-4">You need an active subscription to receive job opportunities.</p>
+                            <a href="/dashboard/worker/select-plan" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                                Choose a Plan
+                            </a>
+                        </div>
+                    </div>
+                    `}
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function logout() {
+                if (confirm('Are you sure you want to logout?')) {
+                    window.location.href = '/auth/login'
+                }
+            }
+        <\/script>
+    </body>
+    </html>
+  `)});Y.get("/worker/select-plan",Q,async e=>{const t=e.get("user");if(t.role!=="worker")return e.redirect("/dashboard");if(await e.env.DB.prepare(`
     SELECT ws.*, sp.plan_name 
     FROM worker_subscriptions ws
     JOIN subscription_plans sp ON ws.plan_id = sp.id
@@ -3036,7 +3124,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
         <\/script>
     </body>
     </html>
-  `)});Y.get("/worker",X,nt,async e=>{const t=e.get("user");if(t.role!=="worker")return e.redirect("/dashboard");const s=await e.env.DB.prepare(`
+  `)});Y.get("/worker",Q,nt,async e=>{const t=e.get("user");if(t.role!=="worker")return e.redirect("/dashboard");const s=await e.env.DB.prepare(`
       SELECT 
         u.id, u.first_name, u.last_name, u.email, u.phone, u.province, u.city,
         u.is_verified, u.created_at,
@@ -4327,7 +4415,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
         <\/script>
     </body>
     </html>
-  `)});Y.get("/worker/profile",X,nt,async e=>{var n;const t=e.get("user");if(t.role!=="worker")return e.redirect("/dashboard");console.log("Loading Worker Profile Management for user:",t.user_id);const s=await e.env.DB.prepare(`
+  `)});Y.get("/worker/profile",Q,nt,async e=>{var n;const t=e.get("user");if(t.role!=="worker")return e.redirect("/dashboard");console.log("Loading Worker Profile Management for user:",t.user_id);const s=await e.env.DB.prepare(`
     SELECT u.id, u.first_name, u.last_name, u.email, u.phone, u.province, u.city,
            u.is_verified, u.created_at,
            up.bio, up.company_name, up.company_description
@@ -5470,7 +5558,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
         <\/script>
     </body>
     </html>
-  `)});Y.get("/admin",X,async e=>{const t=e.get("user");return t.role!=="admin"?e.redirect("/dashboard"):e.html(`
+  `)});Y.get("/admin",Q,async e=>{const t=e.get("user");return t.role!=="admin"?e.redirect("/dashboard"):e.html(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -6447,7 +6535,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
         <!-- Admin dashboard.js removed to avoid conflicts with embedded dashboard loading -->
     </body>
     </html>
-  `)});Y.get("/client/profile",X,async e=>{const t=e.get("user");return t.role!=="client"?e.redirect("/dashboard"):e.html(`
+  `)});Y.get("/client/profile",Q,async e=>{const t=e.get("user");return t.role!=="client"?e.redirect("/dashboard"):e.html(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -6933,7 +7021,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
         <script src="/static/client-profile.js"><\/script>
     </body>
     </html>
-  `)});Y.get("/client/post-job",X,async e=>{const t=e.get("user");return t.role!=="client"?e.redirect("/dashboard"):e.html(`
+  `)});Y.get("/client/post-job",Q,async e=>{const t=e.get("user");return t.role!=="client"?e.redirect("/dashboard"):e.html(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -7023,7 +7111,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
         <script src="/static/client-job-posting.js"><\/script>
     </body>
     </html>
-  `)});Y.get("/client/browse-workers",X,async e=>{const t=e.get("user");return t.role!=="client"?e.redirect("/dashboard"):e.html(`
+  `)});Y.get("/client/browse-workers",Q,async e=>{const t=e.get("user");return t.role!=="client"?e.redirect("/dashboard"):e.html(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -7557,7 +7645,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
         <script src="/static/client-worker-browser.js"><\/script>
     </body>
     </html>
-  `)});Y.get("/client/job/:id",X,async e=>{const t=e.get("user"),s=e.req.param("id");return t.role!=="client"?e.redirect("/dashboard"):e.html(`
+  `)});Y.get("/client/job/:id",Q,async e=>{const t=e.get("user"),s=e.req.param("id");return t.role!=="client"?e.redirect("/dashboard"):e.html(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -7633,7 +7721,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
         <script src="/static/client-job-details.js"><\/script>
     </body>
     </html>
-  `)});Y.get("/client/job/:id/edit",X,async e=>{const t=e.get("user"),s=e.req.param("id");return t.role!=="client"?e.redirect("/dashboard"):e.html(`
+  `)});Y.get("/client/job/:id/edit",Q,async e=>{const t=e.get("user"),s=e.req.param("id");return t.role!=="client"?e.redirect("/dashboard"):e.html(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -7709,7 +7797,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
         <script src="/static/client-edit-job.js"><\/script>
     </body>
     </html>
-  `)});Y.get("/client/worker/:id",X,async e=>{const t=e.get("user"),s=e.req.param("id");return t.role!=="client"?e.redirect("/dashboard"):e.html(`
+  `)});Y.get("/client/worker/:id",Q,async e=>{const t=e.get("user"),s=e.req.param("id");return t.role!=="client"?e.redirect("/dashboard"):e.html(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -7785,7 +7873,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
         <script src="/static/client-worker-profile.js"><\/script>
     </body>
     </html>
-  `)});Y.get("/worker/kanban",X,async e=>{const t=e.get("user");return t.role!=="worker"?e.redirect("/dashboard"):e.html(`
+  `)});Y.get("/worker/kanban",Q,async e=>{const t=e.get("user");return t.role!=="worker"?e.redirect("/dashboard"):e.html(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -7886,7 +7974,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
         <\/script>
     </body>
     </html>
-  `)});Y.get("/worker/bids",X,async e=>{const t=e.get("user");return t.role!=="worker"?e.redirect("/dashboard"):e.html(`
+  `)});Y.get("/worker/bids",Q,async e=>{const t=e.get("user");return t.role!=="worker"?e.redirect("/dashboard"):e.html(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -7960,7 +8048,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
         <\/script>
     </body>
     </html>
-  `)});Y.get("/worker/payments",X,nt,async e=>{const t=e.get("user");if(t.role!=="worker")return e.redirect("/dashboard");const s={totalEarnings:12450,pendingPayments:765,escrowAmount:325,lastPayment:new Date().toLocaleDateString()};return e.html(`
+  `)});Y.get("/worker/payments",Q,nt,async e=>{const t=e.get("user");if(t.role!=="worker")return e.redirect("/dashboard");const s={totalEarnings:12450,pendingPayments:765,escrowAmount:325,lastPayment:new Date().toLocaleDateString()};return e.html(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -8182,7 +8270,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
         <\/script>
     </body>
     </html>
-  `)});Y.get("/worker/earnings",X,async e=>{const t=e.get("user");return t.role!=="worker"?e.redirect("/dashboard"):e.html(`
+  `)});Y.get("/worker/earnings",Q,async e=>{const t=e.get("user");return t.role!=="worker"?e.redirect("/dashboard"):e.html(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -8493,7 +8581,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
         <\/script>
     </body>
     </html>
-  `)});Y.get("/worker/calendar",X,async e=>{const t=e.get("user");return t.role!=="worker"?e.redirect("/dashboard"):e.html(`
+  `)});Y.get("/worker/calendar",Q,async e=>{const t=e.get("user");return t.role!=="worker"?e.redirect("/dashboard"):e.html(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -8749,7 +8837,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
         <\/script>
     </body>
     </html>
-  `)});Y.get("/worker/messages",X,async e=>{const t=e.get("user");return t.role!=="worker"?e.redirect("/dashboard"):e.html(`
+  `)});Y.get("/worker/messages",Q,async e=>{const t=e.get("user");return t.role!=="worker"?e.redirect("/dashboard"):e.html(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -9022,7 +9110,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
         <\/script>
     </body>
     </html>
-  `)});Y.get("/worker/portfolio",X,async e=>{const t=e.get("user");return t.role!=="worker"?e.redirect("/dashboard"):e.html(`
+  `)});Y.get("/worker/portfolio",Q,async e=>{const t=e.get("user");return t.role!=="worker"?e.redirect("/dashboard"):e.html(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -9377,7 +9465,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
         <\/script>
     </body>
     </html>
-  `)});Y.post("/api/worker/profile/update",X,async e=>{const t=e.get("user");if(t.role!=="worker")return e.json({success:!1,error:"Unauthorized"},403);try{const s=await e.req.json();return console.log("Updating worker profile for user:",t.user_id,s),await e.env.DB.prepare(`
+  `)});Y.post("/api/worker/profile/update",Q,async e=>{const t=e.get("user");if(t.role!=="worker")return e.json({success:!1,error:"Unauthorized"},403);try{const s=await e.req.json();return console.log("Updating worker profile for user:",t.user_id,s),await e.env.DB.prepare(`
       UPDATE users 
       SET email = ?, phone = ?, city = ?, province = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
@@ -9390,7 +9478,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
       `).bind(s.businessDescription,t.user_id).run():await e.env.DB.prepare(`
         INSERT INTO user_profiles (user_id, company_description, created_at, updated_at)
         VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-      `).bind(t.user_id,s.businessDescription).run(),console.log("Profile updated successfully for user:",t.user_id),e.json({success:!0,message:"Profile updated successfully",updatedData:{email:s.primaryEmail,phone:s.phone,city:s.city,province:s.province,businessDescription:s.businessDescription}})}catch(s){return console.error("Error updating worker profile:",s),e.json({success:!1,error:"Failed to update profile. Please try again."},500)}});Y.get("/worker/services",X,nt,async e=>{var r;const t=e.get("user");if(t.role!=="worker")return e.redirect("/dashboard");const s=await e.env.DB.prepare(`
+      `).bind(t.user_id,s.businessDescription).run(),console.log("Profile updated successfully for user:",t.user_id),e.json({success:!0,message:"Profile updated successfully",updatedData:{email:s.primaryEmail,phone:s.phone,city:s.city,province:s.province,businessDescription:s.businessDescription}})}catch(s){return console.error("Error updating worker profile:",s),e.json({success:!1,error:"Failed to update profile. Please try again."},500)}});Y.get("/worker/services",Q,nt,async e=>{var r;const t=e.get("user");if(t.role!=="worker")return e.redirect("/dashboard");const s=await e.env.DB.prepare(`
     SELECT * FROM worker_services 
     WHERE user_id = ? AND is_available = 1
     ORDER BY service_name
@@ -9562,7 +9650,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
         <\/script>
     </body>
     </html>
-  `)});Y.get("/worker/compliance",X,nt,async e=>{const t=e.get("user");return t.role!=="worker"?e.redirect("/dashboard"):e.html(`
+  `)});Y.get("/worker/compliance",Q,nt,async e=>{const t=e.get("user");return t.role!=="worker"?e.redirect("/dashboard"):e.html(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -9895,7 +9983,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
         <\/script>
     </body>
     </html>
-  `)});Y.post("/api/worker/payment-settings/update",X,nt,async e=>{const t=e.get("user");if(t.role!=="worker")return e.json({success:!1,error:"Unauthorized"},403);try{const s=await e.req.json();return await e.env.DB.prepare(`
+  `)});Y.post("/api/worker/payment-settings/update",Q,nt,async e=>{const t=e.get("user");if(t.role!=="worker")return e.json({success:!1,error:"Unauthorized"},403);try{const s=await e.req.json();return await e.env.DB.prepare(`
       SELECT id FROM worker_payment_settings WHERE user_id = ?
     `).bind(t.user_id).first()?await e.env.DB.prepare(`
         UPDATE worker_payment_settings 
@@ -9920,9 +10008,9 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
           etransfer_security_question, etransfer_security_answer, minimum_payout_amount, 
           payout_frequency, auto_payout_enabled, created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-      `).bind(t.user_id,s.preferred_payment_method,s.bank_name,s.bank_account_holder,s.bank_account_number,s.bank_routing_number,s.paypal_email,s.interac_email,s.etransfer_security_question,s.etransfer_security_answer,s.minimum_payout_amount,s.payout_frequency,s.auto_payout_enabled).run(),e.json({success:!0,message:"Payment settings updated successfully"})}catch(s){return console.error("Error updating payment settings:",s),e.json({success:!1,error:"Failed to update payment settings. Please try again."},500)}});Y.get("/api/worker/compliance",X,nt,async e=>{const t=e.get("user");if(t.role!=="worker")return e.json({success:!1,error:"Unauthorized"},403);try{const s=await e.env.DB.prepare(`
+      `).bind(t.user_id,s.preferred_payment_method,s.bank_name,s.bank_account_holder,s.bank_account_number,s.bank_routing_number,s.paypal_email,s.interac_email,s.etransfer_security_question,s.etransfer_security_answer,s.minimum_payout_amount,s.payout_frequency,s.auto_payout_enabled).run(),e.json({success:!0,message:"Payment settings updated successfully"})}catch(s){return console.error("Error updating payment settings:",s),e.json({success:!1,error:"Failed to update payment settings. Please try again."},500)}});Y.get("/api/worker/compliance",Q,nt,async e=>{const t=e.get("user");if(t.role!=="worker")return e.json({success:!1,error:"Unauthorized"},403);try{const s=await e.env.DB.prepare(`
       SELECT * FROM worker_compliance WHERE user_id = ?
-    `).bind(t.user_id).first();return e.json({success:!0,compliance:s||{}})}catch(s){return console.error("Error fetching compliance data:",s),e.json({success:!1,error:"Failed to fetch compliance data"},500)}});Y.post("/api/worker/compliance/update",X,nt,async e=>{const t=e.get("user");if(t.role!=="worker")return e.json({success:!1,error:"Unauthorized"},403);try{const s=await e.req.json();return await e.env.DB.prepare(`
+    `).bind(t.user_id).first();return e.json({success:!0,compliance:s||{}})}catch(s){return console.error("Error fetching compliance data:",s),e.json({success:!1,error:"Failed to fetch compliance data"},500)}});Y.post("/api/worker/compliance/update",Q,nt,async e=>{const t=e.get("user");if(t.role!=="worker")return e.json({success:!1,error:"Unauthorized"},403);try{const s=await e.req.json();return await e.env.DB.prepare(`
       SELECT id FROM worker_compliance WHERE user_id = ?
     `).bind(t.user_id).first()?await e.env.DB.prepare(`
         UPDATE worker_compliance 
@@ -9942,12 +10030,12 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
           insurance_policy_number, insurance_valid_until, license_type, 
           license_number, license_valid_until, created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-      `).bind(t.user_id,s.wsib_number,s.wsib_valid_until,s.insurance_provider,s.insurance_policy_number,s.insurance_valid_until,s.license_type,s.license_number,s.license_valid_until).run(),e.json({success:!0,message:"Compliance information updated successfully"})}catch(s){return console.error("Error updating compliance data:",s),e.json({success:!1,error:"Failed to update compliance information. Please try again."},500)}});Y.post("/api/worker/services",X,nt,async e=>{const t=e.get("user");if(t.role!=="worker")return e.json({success:!1,error:"Unauthorized"},403);try{const s=await e.req.json();return await e.env.DB.prepare(`
+      `).bind(t.user_id,s.wsib_number,s.wsib_valid_until,s.insurance_provider,s.insurance_policy_number,s.insurance_valid_until,s.license_type,s.license_number,s.license_valid_until).run(),e.json({success:!0,message:"Compliance information updated successfully"})}catch(s){return console.error("Error updating compliance data:",s),e.json({success:!1,error:"Failed to update compliance information. Please try again."},500)}});Y.post("/api/worker/services",Q,nt,async e=>{const t=e.get("user");if(t.role!=="worker")return e.json({success:!1,error:"Unauthorized"},403);try{const s=await e.req.json();return await e.env.DB.prepare(`
       INSERT INTO worker_services (
         user_id, service_category, service_name, hourly_rate, 
         description, is_available, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-    `).bind(t.user_id,s.category,s.service_name,s.hourly_rate,s.description).run(),e.json({success:!0,message:"Service added successfully"})}catch(s){return console.error("Error adding service:",s),e.json({success:!1,error:"Failed to add service. Please try again."},500)}});Y.get("/api/worker/payment-settings",X,nt,async e=>{const t=e.get("user");if(t.role!=="worker")return e.json({success:!1,error:"Unauthorized"},403);try{const s=await e.env.DB.prepare(`
+    `).bind(t.user_id,s.category,s.service_name,s.hourly_rate,s.description).run(),e.json({success:!0,message:"Service added successfully"})}catch(s){return console.error("Error adding service:",s),e.json({success:!1,error:"Failed to add service. Please try again."},500)}});Y.get("/api/worker/payment-settings",Q,nt,async e=>{const t=e.get("user");if(t.role!=="worker")return e.json({success:!1,error:"Unauthorized"},403);try{const s=await e.env.DB.prepare(`
       SELECT * FROM worker_payment_settings WHERE user_id = ?
     `).bind(t.user_id).first();return e.json({success:!0,paymentSettings:s||{}})}catch(s){return console.error("Error fetching payment settings:",s),e.json({success:!1,error:"Failed to fetch payment settings"},500)}});const $s=new ue,kr=async(e,t)=>{var i;const s=(i=e.req.header("Authorization"))==null?void 0:i.replace("Bearer ","");if(!s)return e.json({error:"Authentication required"},401);const r=await e.env.DB.prepare(`
     SELECT s.user_id, u.role, u.email, u.first_name, u.last_name, u.province
@@ -11734,6 +11822,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
                         headers: {
                             'Content-Type': 'application/json'
                         },
+                        credentials: 'include', // Essential for cookie handling
                         body: JSON.stringify({ email, password })
                     });
                     
@@ -11782,6 +11871,7 @@ var Hc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var qc=(e,t,s)=>t in
                         headers: {
                             'Content-Type': 'application/json'
                         },
+                        credentials: 'include', // Essential for cookie handling
                         body: JSON.stringify({ role: userType })
                     });
                     
@@ -13556,38 +13646,38 @@ Resolution: ${r.notes}`,!1),await this.notifyDisputeResolved(t,r),await this.can
         SELECT template_invoice_id FROM recurring_invoice_schedules WHERE id = ?
       )
       ORDER BY i.created_at DESC
-    `).bind(t).all()).results}}const K=new ue,we=e=>{const t=new Pe(e.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0});return{invoiceService:new Ac(e.DB,t),pdfService:new By(e.DB),recurringService:new Hy(e.DB,t)}},Q=async(e,t)=>{let s=null;const r=e.req.header("Authorization");if(r&&r.startsWith("Bearer ")&&(s=r.replace("Bearer ","")),!s){const i=e.req.header("Cookie");if(i){const a=i.match(/session=([^;]+)/);a&&(s=a[1])}}if(!s)return e.json({error:"Authentication required"},401);try{const{env:i}=e,a=await i.DB.prepare(`
+    `).bind(t).all()).results}}const K=new ue,we=e=>{const t=new Pe(e.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0});return{invoiceService:new Ac(e.DB,t),pdfService:new By(e.DB),recurringService:new Hy(e.DB,t)}},X=async(e,t)=>{let s=null;const r=e.req.header("Authorization");if(r&&r.startsWith("Bearer ")&&(s=r.replace("Bearer ","")),!s){const i=e.req.header("Cookie");if(i){const a=i.match(/session=([^;]+)/);a&&(s=a[1])}}if(!s)return e.json({error:"Authentication required"},401);try{const{env:i}=e,a=await i.DB.prepare(`
       SELECT u.*, 
              CASE WHEN w.user_id IS NOT NULL THEN 'worker' ELSE 'client' END as user_type
       FROM users u 
       LEFT JOIN workers w ON u.user_id = w.user_id 
       WHERE u.session_token = ? AND u.status = 'active'
-    `).bind(s).first();if(!a)return e.json({error:"Invalid session"},401);e.set("user",a),await t()}catch(i){return console.error("Auth middleware error:",i),e.json({error:"Authentication failed"},401)}};K.post("/create",Q,async e=>{try{const{env:t}=e,{invoiceService:s}=we(t),{invoice_data:r,items:i}=await e.req.json(),a=e.get("user");if(a.user_type!=="worker")return e.json({error:"Only service providers can create invoices"},403);r.worker_id=a.user_id;const n=await s.createInvoice(r,i);return e.json(n)}catch(t){return console.error("Create invoice error:",t),e.json({error:"Failed to create invoice"},500)}});K.get("/:invoiceId",Q,async e=>{try{const{env:t}=e,{invoiceService:s}=we(t),r=parseInt(e.req.param("invoiceId")),i=e.get("user"),a=await s.getInvoiceById(r);if(!a)return e.json({error:"Invoice not found"},404);if(a.client_id!==i.user_id&&a.worker_id!==i.user_id&&i.role!=="admin")return e.json({error:"Access denied"},403);const n=await s.getInvoiceItems(r);return e.json({success:!0,invoice:{...a,items:n}})}catch(t){return console.error("Get invoice error:",t),e.json({error:"Failed to get invoice"},500)}});K.get("/list/:userType",Q,async e=>{try{const{env:t}=e,{invoiceService:s}=we(t),r=e.req.param("userType"),i=e.get("user"),a=e.req.query("status"),n=e.req.query("invoice_type"),o=e.req.query("from_date"),l=e.req.query("to_date"),d=parseInt(e.req.query("limit")||"50"),c=parseInt(e.req.query("offset")||"0"),u={status:a,invoice_type:n,from_date:o,to_date:l,limit:d,offset:c},p=await s.getUserInvoices(i.user_id,r,u);return e.json({success:!0,...p})}catch(t){return console.error("Get user invoices error:",t),e.json({error:"Failed to get invoices"},500)}});K.post("/:invoiceId/send",Q,async e=>{try{const{env:t}=e,{invoiceService:s}=we(t),r=parseInt(e.req.param("invoiceId")),i=e.get("user"),a=await e.req.json(),n=await s.getInvoiceById(r);if(!n||n.worker_id!==i.user_id)return e.json({error:"Invoice not found or access denied"},403);const o=await s.sendInvoice(r,i.user_id,a);return e.json(o)}catch(t){return console.error("Send invoice error:",t),e.json({error:"Failed to send invoice"},500)}});K.put("/:invoiceId/status",Q,async e=>{try{const{env:t}=e,{invoiceService:s}=we(t),r=parseInt(e.req.param("invoiceId")),{status:i,reason:a}=await e.req.json(),n=e.get("user"),o=await s.updateInvoiceStatus(r,i,n.user_id,a);return e.json(o)}catch(t){return console.error("Update invoice status error:",t),e.json({error:"Failed to update invoice status"},500)}});K.post("/:invoiceId/payment",Q,async e=>{try{const{env:t}=e,{invoiceService:s}=we(t),r=parseInt(e.req.param("invoiceId")),i=await e.req.json(),a=e.get("user"),n=await s.processInvoicePayment(r,i,a.user_id);return e.json(n)}catch(t){return console.error("Process payment error:",t),e.json({error:"Failed to process payment"},500)}});K.post("/:invoiceId/pdf",Q,async e=>{try{const{env:t}=e,{pdfService:s}=we(t),r=parseInt(e.req.param("invoiceId")),i=await e.req.json(),a=e.get("user"),n=await t.DB.prepare(`
+    `).bind(s).first();if(!a)return e.json({error:"Invalid session"},401);e.set("user",a),await t()}catch(i){return console.error("Auth middleware error:",i),e.json({error:"Authentication failed"},401)}};K.post("/create",X,async e=>{try{const{env:t}=e,{invoiceService:s}=we(t),{invoice_data:r,items:i}=await e.req.json(),a=e.get("user");if(a.user_type!=="worker")return e.json({error:"Only service providers can create invoices"},403);r.worker_id=a.user_id;const n=await s.createInvoice(r,i);return e.json(n)}catch(t){return console.error("Create invoice error:",t),e.json({error:"Failed to create invoice"},500)}});K.get("/:invoiceId",X,async e=>{try{const{env:t}=e,{invoiceService:s}=we(t),r=parseInt(e.req.param("invoiceId")),i=e.get("user"),a=await s.getInvoiceById(r);if(!a)return e.json({error:"Invoice not found"},404);if(a.client_id!==i.user_id&&a.worker_id!==i.user_id&&i.role!=="admin")return e.json({error:"Access denied"},403);const n=await s.getInvoiceItems(r);return e.json({success:!0,invoice:{...a,items:n}})}catch(t){return console.error("Get invoice error:",t),e.json({error:"Failed to get invoice"},500)}});K.get("/list/:userType",X,async e=>{try{const{env:t}=e,{invoiceService:s}=we(t),r=e.req.param("userType"),i=e.get("user"),a=e.req.query("status"),n=e.req.query("invoice_type"),o=e.req.query("from_date"),l=e.req.query("to_date"),d=parseInt(e.req.query("limit")||"50"),c=parseInt(e.req.query("offset")||"0"),u={status:a,invoice_type:n,from_date:o,to_date:l,limit:d,offset:c},p=await s.getUserInvoices(i.user_id,r,u);return e.json({success:!0,...p})}catch(t){return console.error("Get user invoices error:",t),e.json({error:"Failed to get invoices"},500)}});K.post("/:invoiceId/send",X,async e=>{try{const{env:t}=e,{invoiceService:s}=we(t),r=parseInt(e.req.param("invoiceId")),i=e.get("user"),a=await e.req.json(),n=await s.getInvoiceById(r);if(!n||n.worker_id!==i.user_id)return e.json({error:"Invoice not found or access denied"},403);const o=await s.sendInvoice(r,i.user_id,a);return e.json(o)}catch(t){return console.error("Send invoice error:",t),e.json({error:"Failed to send invoice"},500)}});K.put("/:invoiceId/status",X,async e=>{try{const{env:t}=e,{invoiceService:s}=we(t),r=parseInt(e.req.param("invoiceId")),{status:i,reason:a}=await e.req.json(),n=e.get("user"),o=await s.updateInvoiceStatus(r,i,n.user_id,a);return e.json(o)}catch(t){return console.error("Update invoice status error:",t),e.json({error:"Failed to update invoice status"},500)}});K.post("/:invoiceId/payment",X,async e=>{try{const{env:t}=e,{invoiceService:s}=we(t),r=parseInt(e.req.param("invoiceId")),i=await e.req.json(),a=e.get("user"),n=await s.processInvoicePayment(r,i,a.user_id);return e.json(n)}catch(t){return console.error("Process payment error:",t),e.json({error:"Failed to process payment"},500)}});K.post("/:invoiceId/pdf",X,async e=>{try{const{env:t}=e,{pdfService:s}=we(t),r=parseInt(e.req.param("invoiceId")),i=await e.req.json(),a=e.get("user"),n=await t.DB.prepare(`
       SELECT * FROM invoices WHERE id = ?
-    `).bind(r).first();if(!n)return e.json({error:"Invoice not found"},404);if(n.client_id!==a.user_id&&n.worker_id!==a.user_id&&a.role!=="admin")return e.json({error:"Access denied"},403);const o=await s.generateInvoicePDF(r,i);return e.json(o)}catch(t){return console.error("Generate PDF error:",t),e.json({error:"Failed to generate PDF"},500)}});K.get("/dashboard/:userType",Q,async e=>{try{const{env:t}=e,{invoiceService:s}=we(t),r=e.req.param("userType"),i=e.get("user"),a=await s.getInvoiceDashboard(i.user_id,r);return e.json({success:!0,dashboard:a})}catch(t){return console.error("Get invoice dashboard error:",t),e.json({error:"Failed to get dashboard data"},500)}});K.post("/:invoiceId/recurring",Q,async e=>{try{const{env:t}=e,{recurringService:s}=we(t),r=parseInt(e.req.param("invoiceId")),i=await e.req.json(),a=e.get("user");if(!await t.DB.prepare(`
+    `).bind(r).first();if(!n)return e.json({error:"Invoice not found"},404);if(n.client_id!==a.user_id&&n.worker_id!==a.user_id&&a.role!=="admin")return e.json({error:"Access denied"},403);const o=await s.generateInvoicePDF(r,i);return e.json(o)}catch(t){return console.error("Generate PDF error:",t),e.json({error:"Failed to generate PDF"},500)}});K.get("/dashboard/:userType",X,async e=>{try{const{env:t}=e,{invoiceService:s}=we(t),r=e.req.param("userType"),i=e.get("user"),a=await s.getInvoiceDashboard(i.user_id,r);return e.json({success:!0,dashboard:a})}catch(t){return console.error("Get invoice dashboard error:",t),e.json({error:"Failed to get dashboard data"},500)}});K.post("/:invoiceId/recurring",X,async e=>{try{const{env:t}=e,{recurringService:s}=we(t),r=parseInt(e.req.param("invoiceId")),i=await e.req.json(),a=e.get("user");if(!await t.DB.prepare(`
       SELECT * FROM invoices WHERE id = ? AND worker_id = ?
-    `).bind(r,a.user_id).first())return e.json({error:"Invoice not found or access denied"},403);const o=await s.createRecurringSchedule(r,i);return e.json(o)}catch(t){return console.error("Create recurring schedule error:",t),e.json({error:"Failed to create recurring schedule"},500)}});K.get("/recurring/schedules/:userType",Q,async e=>{try{const{env:t}=e,{recurringService:s}=we(t),r=e.req.param("userType"),i=e.get("user"),a=await s.getUserRecurringSchedules(i.user_id,r);return e.json({success:!0,schedules:a})}catch(t){return console.error("Get recurring schedules error:",t),e.json({error:"Failed to get recurring schedules"},500)}});K.put("/recurring/:scheduleId",Q,async e=>{try{const{env:t}=e,{recurringService:s}=we(t),r=parseInt(e.req.param("scheduleId")),i=await e.req.json(),a=await s.updateRecurringSchedule(r,i);return e.json(a)}catch(t){return console.error("Update recurring schedule error:",t),e.json({error:"Failed to update recurring schedule"},500)}});K.post("/recurring/:scheduleId/:action",Q,async e=>{try{const{env:t}=e,{recurringService:s}=we(t),r=parseInt(e.req.param("scheduleId")),i=e.req.param("action");if(!["pause","resume"].includes(i))return e.json({error:"Invalid action"},400);const a=await s.pauseRecurringSchedule(r,i==="pause");return e.json(a)}catch(t){return console.error("Pause/resume schedule error:",t),e.json({error:"Failed to update schedule"},500)}});K.get("/recurring/:scheduleId/history",Q,async e=>{try{const{env:t}=e,{recurringService:s}=we(t),r=parseInt(e.req.param("scheduleId")),i=await s.getRecurringInvoiceHistory(r);return e.json({success:!0,history:i})}catch(t){return console.error("Get recurring history error:",t),e.json({error:"Failed to get recurring history"},500)}});K.post("/:invoiceId/payment-link",Q,async e=>{try{const{env:t}=e,{recurringService:s}=we(t),r=parseInt(e.req.param("invoiceId")),i=await e.req.json(),a=e.get("user");if(!await t.DB.prepare(`
+    `).bind(r,a.user_id).first())return e.json({error:"Invoice not found or access denied"},403);const o=await s.createRecurringSchedule(r,i);return e.json(o)}catch(t){return console.error("Create recurring schedule error:",t),e.json({error:"Failed to create recurring schedule"},500)}});K.get("/recurring/schedules/:userType",X,async e=>{try{const{env:t}=e,{recurringService:s}=we(t),r=e.req.param("userType"),i=e.get("user"),a=await s.getUserRecurringSchedules(i.user_id,r);return e.json({success:!0,schedules:a})}catch(t){return console.error("Get recurring schedules error:",t),e.json({error:"Failed to get recurring schedules"},500)}});K.put("/recurring/:scheduleId",X,async e=>{try{const{env:t}=e,{recurringService:s}=we(t),r=parseInt(e.req.param("scheduleId")),i=await e.req.json(),a=await s.updateRecurringSchedule(r,i);return e.json(a)}catch(t){return console.error("Update recurring schedule error:",t),e.json({error:"Failed to update recurring schedule"},500)}});K.post("/recurring/:scheduleId/:action",X,async e=>{try{const{env:t}=e,{recurringService:s}=we(t),r=parseInt(e.req.param("scheduleId")),i=e.req.param("action");if(!["pause","resume"].includes(i))return e.json({error:"Invalid action"},400);const a=await s.pauseRecurringSchedule(r,i==="pause");return e.json(a)}catch(t){return console.error("Pause/resume schedule error:",t),e.json({error:"Failed to update schedule"},500)}});K.get("/recurring/:scheduleId/history",X,async e=>{try{const{env:t}=e,{recurringService:s}=we(t),r=parseInt(e.req.param("scheduleId")),i=await s.getRecurringInvoiceHistory(r);return e.json({success:!0,history:i})}catch(t){return console.error("Get recurring history error:",t),e.json({error:"Failed to get recurring history"},500)}});K.post("/:invoiceId/payment-link",X,async e=>{try{const{env:t}=e,{recurringService:s}=we(t),r=parseInt(e.req.param("invoiceId")),i=await e.req.json(),a=e.get("user");if(!await t.DB.prepare(`
       SELECT * FROM invoices WHERE id = ? AND worker_id = ?
-    `).bind(r,a.user_id).first())return e.json({error:"Invoice not found or access denied"},403);const o=await s.createAdvancedPaymentLink(r,i);return e.json(o)}catch(t){return console.error("Create payment link error:",t),e.json({error:"Failed to create payment link"},500)}});K.get("/templates/list",Q,async e=>{try{const{env:t}=e,{pdfService:s}=we(t),r=await s.getAvailableTemplates();return e.json({success:!0,templates:r})}catch(t){return console.error("Get templates error:",t),e.json({error:"Failed to get templates"},500)}});K.post("/templates/create",Q,async e=>{try{const{env:t}=e,{pdfService:s}=we(t),r=await e.req.json(),i=e.get("user");if(i.user_type!=="worker"&&i.role!=="admin")return e.json({error:"Only service providers can create templates"},403);const a=await s.createTemplate(r);return e.json(a)}catch(t){return console.error("Create template error:",t),e.json({error:"Failed to create template"},500)}});K.post("/admin/process-recurring",Q,async e=>{try{const{env:t}=e,{recurringService:s}=we(t);if(e.get("user").role!=="admin")return e.json({error:"Admin access required"},403);const i=await s.processRecurringInvoices();return e.json({success:!0,results:i})}catch(t){return console.error("Process recurring invoices error:",t),e.json({error:"Failed to process recurring invoices"},500)}});K.get("/admin/analytics",Q,async e=>{try{const{env:t}=e;if(e.get("user").role!=="admin")return e.json({error:"Admin access required"},403);const r=e.req.query("period")||"monthly",i=parseInt(e.req.query("limit")||"12"),a=await t.DB.prepare(`
+    `).bind(r,a.user_id).first())return e.json({error:"Invoice not found or access denied"},403);const o=await s.createAdvancedPaymentLink(r,i);return e.json(o)}catch(t){return console.error("Create payment link error:",t),e.json({error:"Failed to create payment link"},500)}});K.get("/templates/list",X,async e=>{try{const{env:t}=e,{pdfService:s}=we(t),r=await s.getAvailableTemplates();return e.json({success:!0,templates:r})}catch(t){return console.error("Get templates error:",t),e.json({error:"Failed to get templates"},500)}});K.post("/templates/create",X,async e=>{try{const{env:t}=e,{pdfService:s}=we(t),r=await e.req.json(),i=e.get("user");if(i.user_type!=="worker"&&i.role!=="admin")return e.json({error:"Only service providers can create templates"},403);const a=await s.createTemplate(r);return e.json(a)}catch(t){return console.error("Create template error:",t),e.json({error:"Failed to create template"},500)}});K.post("/admin/process-recurring",X,async e=>{try{const{env:t}=e,{recurringService:s}=we(t);if(e.get("user").role!=="admin")return e.json({error:"Admin access required"},403);const i=await s.processRecurringInvoices();return e.json({success:!0,results:i})}catch(t){return console.error("Process recurring invoices error:",t),e.json({error:"Failed to process recurring invoices"},500)}});K.get("/admin/analytics",X,async e=>{try{const{env:t}=e;if(e.get("user").role!=="admin")return e.json({error:"Admin access required"},403);const r=e.req.query("period")||"monthly",i=parseInt(e.req.query("limit")||"12"),a=await t.DB.prepare(`
       SELECT * FROM invoice_analytics 
       WHERE period_type = ?
       ORDER BY report_date DESC
       LIMIT ?
-    `).bind(r,i).all();return e.json({success:!0,analytics:a.results})}catch(t){return console.error("Get invoice analytics error:",t),e.json({error:"Failed to get analytics"},500)}});K.post("/:invoiceId/dispute",Q,async e=>{try{const{env:t}=e,{InvoiceDisputeService:s}=await Promise.resolve().then(()=>rt),r=new Pe(t.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0}),i=new s(t.DB,r),a=parseInt(e.req.param("invoiceId")),n=await e.req.json(),o=e.get("user");if(!await t.DB.prepare(`
+    `).bind(r,i).all();return e.json({success:!0,analytics:a.results})}catch(t){return console.error("Get invoice analytics error:",t),e.json({error:"Failed to get analytics"},500)}});K.post("/:invoiceId/dispute",X,async e=>{try{const{env:t}=e,{InvoiceDisputeService:s}=await Promise.resolve().then(()=>rt),r=new Pe(t.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0}),i=new s(t.DB,r),a=parseInt(e.req.param("invoiceId")),n=await e.req.json(),o=e.get("user");if(!await t.DB.prepare(`
       SELECT * FROM invoices WHERE id = ? AND (client_id = ? OR worker_id = ?)
-    `).bind(a,o.user_id,o.user_id).first())return e.json({error:"Invoice not found or access denied"},403);const d=await i.createDispute({invoice_id:a,dispute_type:n.dispute_type,dispute_category:n.dispute_category,title:n.title,reason:n.reason,description:n.description,amount_disputed:n.amount_disputed,priority:n.priority,evidence:n.evidence},o.user_id);return e.json(d)}catch(t){return console.error("Create invoice dispute error:",t),e.json({error:"Failed to create dispute"},500)}});K.get("/:invoiceId/disputes",Q,async e=>{try{const{env:t}=e,{InvoiceDisputeService:s}=await Promise.resolve().then(()=>rt),r=new Pe(t.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0}),i=new s(t.DB,r),a=parseInt(e.req.param("invoiceId")),n=e.get("user");if(!await t.DB.prepare(`
+    `).bind(a,o.user_id,o.user_id).first())return e.json({error:"Invoice not found or access denied"},403);const d=await i.createDispute({invoice_id:a,dispute_type:n.dispute_type,dispute_category:n.dispute_category,title:n.title,reason:n.reason,description:n.description,amount_disputed:n.amount_disputed,priority:n.priority,evidence:n.evidence},o.user_id);return e.json(d)}catch(t){return console.error("Create invoice dispute error:",t),e.json({error:"Failed to create dispute"},500)}});K.get("/:invoiceId/disputes",X,async e=>{try{const{env:t}=e,{InvoiceDisputeService:s}=await Promise.resolve().then(()=>rt),r=new Pe(t.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0}),i=new s(t.DB,r),a=parseInt(e.req.param("invoiceId")),n=e.get("user");if(!await t.DB.prepare(`
       SELECT * FROM invoices WHERE id = ? AND (client_id = ? OR worker_id = ?)
     `).bind(a,n.user_id,n.user_id).first())return e.json({error:"Invoice not found or access denied"},403);const l=await t.DB.prepare(`
       SELECT * FROM invoice_disputes WHERE invoice_id = ? ORDER BY created_at DESC
-    `).bind(a).all();return e.json({success:!0,disputes:l.results})}catch(t){return console.error("Get invoice disputes error:",t),e.json({error:"Failed to get disputes"},500)}});K.get("/disputes/:disputeId",Q,async e=>{try{const{env:t}=e,{InvoiceDisputeService:s}=await Promise.resolve().then(()=>rt),r=new Pe(t.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0}),i=new s(t.DB,r),a=parseInt(e.req.param("disputeId")),n=e.get("user");if(!await t.DB.prepare(`
+    `).bind(a).all();return e.json({success:!0,disputes:l.results})}catch(t){return console.error("Get invoice disputes error:",t),e.json({error:"Failed to get disputes"},500)}});K.get("/disputes/:disputeId",X,async e=>{try{const{env:t}=e,{InvoiceDisputeService:s}=await Promise.resolve().then(()=>rt),r=new Pe(t.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0}),i=new s(t.DB,r),a=parseInt(e.req.param("disputeId")),n=e.get("user");if(!await t.DB.prepare(`
       SELECT * FROM invoice_disputes WHERE id = ? AND (client_id = ? OR worker_id = ?)
-    `).bind(a,n.user_id,n.user_id).first())return e.json({error:"Dispute not found or access denied"},403);const l=await i.getDisputeById(a);return e.json(l)}catch(t){return console.error("Get dispute details error:",t),e.json({error:"Failed to get dispute details"},500)}});K.put("/disputes/:disputeId/status",Q,async e=>{try{const{env:t}=e,{InvoiceDisputeService:s}=await Promise.resolve().then(()=>rt),r=new Pe(t.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0}),i=new s(t.DB,r),a=parseInt(e.req.param("disputeId")),{status:n,notes:o}=await e.req.json(),l=e.get("user");if(!await t.DB.prepare(`
+    `).bind(a,n.user_id,n.user_id).first())return e.json({error:"Dispute not found or access denied"},403);const l=await i.getDisputeById(a);return e.json(l)}catch(t){return console.error("Get dispute details error:",t),e.json({error:"Failed to get dispute details"},500)}});K.put("/disputes/:disputeId/status",X,async e=>{try{const{env:t}=e,{InvoiceDisputeService:s}=await Promise.resolve().then(()=>rt),r=new Pe(t.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0}),i=new s(t.DB,r),a=parseInt(e.req.param("disputeId")),{status:n,notes:o}=await e.req.json(),l=e.get("user");if(!await t.DB.prepare(`
       SELECT * FROM invoice_disputes WHERE id = ? AND (client_id = ? OR worker_id = ? OR ? = 'admin')
-    `).bind(a,l.user_id,l.user_id,l.role).first())return e.json({error:"Dispute not found or access denied"},403);const c=await i.updateDisputeStatus(a,n,l.user_id,o);return e.json(c)}catch(t){return console.error("Update dispute status error:",t),e.json({error:"Failed to update dispute status"},500)}});K.post("/disputes/:disputeId/evidence",Q,async e=>{try{const{env:t}=e,{InvoiceDisputeService:s}=await Promise.resolve().then(()=>rt),r=new Pe(t.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0}),i=new s(t.DB,r),a=parseInt(e.req.param("disputeId")),n=await e.req.json(),o=e.get("user");if(!await t.DB.prepare(`
+    `).bind(a,l.user_id,l.user_id,l.role).first())return e.json({error:"Dispute not found or access denied"},403);const c=await i.updateDisputeStatus(a,n,l.user_id,o);return e.json(c)}catch(t){return console.error("Update dispute status error:",t),e.json({error:"Failed to update dispute status"},500)}});K.post("/disputes/:disputeId/evidence",X,async e=>{try{const{env:t}=e,{InvoiceDisputeService:s}=await Promise.resolve().then(()=>rt),r=new Pe(t.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0}),i=new s(t.DB,r),a=parseInt(e.req.param("disputeId")),n=await e.req.json(),o=e.get("user");if(!await t.DB.prepare(`
       SELECT * FROM invoice_disputes WHERE id = ? AND (client_id = ? OR worker_id = ?)
-    `).bind(a,o.user_id,o.user_id).first())return e.json({error:"Dispute not found or access denied"},403);const d=await i.addEvidence(a,o.user_id,n);return e.json(d)}catch(t){return console.error("Add dispute evidence error:",t),e.json({error:"Failed to add evidence"},500)}});K.post("/disputes/:disputeId/messages",Q,async e=>{try{const{env:t}=e,{InvoiceDisputeService:s}=await Promise.resolve().then(()=>rt),r=new Pe(t.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0}),i=new s(t.DB,r),a=parseInt(e.req.param("disputeId")),n=await e.req.json(),o=e.get("user");if(!await t.DB.prepare(`
+    `).bind(a,o.user_id,o.user_id).first())return e.json({error:"Dispute not found or access denied"},403);const d=await i.addEvidence(a,o.user_id,n);return e.json(d)}catch(t){return console.error("Add dispute evidence error:",t),e.json({error:"Failed to add evidence"},500)}});K.post("/disputes/:disputeId/messages",X,async e=>{try{const{env:t}=e,{InvoiceDisputeService:s}=await Promise.resolve().then(()=>rt),r=new Pe(t.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0}),i=new s(t.DB,r),a=parseInt(e.req.param("disputeId")),n=await e.req.json(),o=e.get("user");if(!await t.DB.prepare(`
       SELECT * FROM invoice_disputes WHERE id = ? AND (client_id = ? OR worker_id = ?)
-    `).bind(a,o.user_id,o.user_id).first())return e.json({error:"Dispute not found or access denied"},403);const d=await i.addMessage(a,o.user_id,n.recipient_id,n);return e.json(d)}catch(t){return console.error("Add dispute message error:",t),e.json({error:"Failed to add message"},500)}});K.post("/disputes/:disputeId/resolve",Q,async e=>{try{const{env:t}=e,{InvoiceDisputeService:s}=await Promise.resolve().then(()=>rt),r=new Pe(t.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0}),i=new s(t.DB,r),a=parseInt(e.req.param("disputeId")),n=await e.req.json(),o=e.get("user");if(o.role!=="admin")return e.json({error:"Admin access required to resolve disputes"},403);const l=await i.resolveDispute(a,n,o.user_id);return e.json(l)}catch(t){return console.error("Resolve dispute error:",t),e.json({error:"Failed to resolve dispute"},500)}});K.get("/disputes/my/list",Q,async e=>{try{const{env:t}=e,{InvoiceDisputeService:s}=await Promise.resolve().then(()=>rt),r=new Pe(t.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0}),i=new s(t.DB,r),a=e.get("user"),n=e.req.query("status"),o=parseInt(e.req.query("limit")||"20"),l=parseInt(e.req.query("offset")||"0"),d=await i.listDisputes({user_id:a.user_id,status:n,limit:o,offset:l});return e.json(d)}catch(t){return console.error("List user disputes error:",t),e.json({error:"Failed to list disputes"},500)}});K.get("/admin/disputes/list",Q,async e=>{try{const{env:t}=e,{InvoiceDisputeService:s}=await Promise.resolve().then(()=>rt),r=new Pe(t.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0}),i=new s(t.DB,r);if(e.get("user").role!=="admin")return e.json({error:"Admin access required"},403);const n={status:e.req.query("status"),dispute_type:e.req.query("dispute_type"),priority:e.req.query("priority"),assigned_to:e.req.query("assigned_to")?parseInt(e.req.query("assigned_to")):void 0,limit:parseInt(e.req.query("limit")||"50"),offset:parseInt(e.req.query("offset")||"0")},o=await i.listDisputes(n);return e.json(o)}catch(t){return console.error("Admin list disputes error:",t),e.json({error:"Failed to list disputes"},500)}});K.get("/admin/disputes/analytics",Q,async e=>{try{const{env:t}=e,{InvoiceDisputeService:s}=await Promise.resolve().then(()=>rt),r=new Pe(t.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0}),i=new s(t.DB,r);if(e.get("user").role!=="admin")return e.json({error:"Admin access required"},403);const n={start_date:e.req.query("start_date"),end_date:e.req.query("end_date"),dispute_type:e.req.query("dispute_type")},o=await i.getDisputeAnalytics(n);return e.json(o)}catch(t){return console.error("Dispute analytics error:",t),e.json({error:"Failed to get dispute analytics"},500)}});class tt{constructor(t,s){this.db=t,this.r2=s}async uploadFile(t){try{const s=this.validateFile(t);if(!s.isValid)return{success:!1,error:s.error};const r=this.generateStoredName(t.originalName),i=this.generateStoragePath(t.uploadedBy,r),a=await this.calculateFileHash(t.file),n=await this.findFileByHash(a,t.uploadedBy);if(n)return{success:!0,file:n,fileId:n.id};const o=t.file instanceof File?t.file.size:t.file.byteLength,l=await this.uploadToR2(i,t.file);if(!l.success)return{success:!1,error:l.error};const d=await this.storeFileMetadata({original_name:t.originalName,stored_name:r,file_size:o,mime_type:t.mimeType,file_hash:a,storage_path:i,uploaded_by:t.uploadedBy,upload_session_id:t.uploadSessionId,expires_at:t.expiresAt,is_public:t.isPublic||!1,virus_scan_status:"pending",processing_status:"pending"});return(t.conversationId||t.messageId)&&await this.associateFileWithMessage(d.id,t.conversationId,t.messageId),t.relatedEntityType&&t.relatedEntityId&&await this.associateFileWithEntity(d.id,t.relatedEntityType,t.relatedEntityId),await this.initiateBackgroundProcessing(d.id),{success:!0,file:d,fileId:d.id}}catch(s){return console.error("File upload failed:",s),{success:!1,error:s instanceof Error?s.message:"File upload failed"}}}async downloadFile(t,s){try{const r=await this.getFileById(t);if(!r)return{success:!1,error:"File not found"};if(!await this.checkFilePermission(t,s.userId,s.userRole,"download"))return{success:!1,error:"Access denied"};if(r.virus_scan_status==="infected")return{success:!1,error:"File infected by virus, download not allowed"};if(r.expires_at&&new Date(r.expires_at)<new Date)return{success:!1,error:"File has expired"};const a=await this.r2.get(r.storage_path);return a?(s.trackDownload&&await this.trackFileDownload(t,s.userId),{success:!0,file:await a.arrayBuffer(),metadata:r}):{success:!1,error:"File not found in storage"}}catch(r){return console.error("File download failed:",r),{success:!1,error:r instanceof Error?r.message:"File download failed"}}}async getFileDownloadUrl(t,s,r,i=3600){try{if(!await this.checkFilePermission(t,s,r,"download"))return{success:!1,error:"Access denied"};const n=await this.getFileById(t);return n?{success:!0,url:await this.generateSignedUrl(n.storage_path,i)}:{success:!1,error:"File not found"}}catch(a){return console.error("Failed to generate download URL:",a),{success:!1,error:a instanceof Error?a.message:"Failed to generate download URL"}}}async searchFiles(t){try{let s=`
+    `).bind(a,o.user_id,o.user_id).first())return e.json({error:"Dispute not found or access denied"},403);const d=await i.addMessage(a,o.user_id,n.recipient_id,n);return e.json(d)}catch(t){return console.error("Add dispute message error:",t),e.json({error:"Failed to add message"},500)}});K.post("/disputes/:disputeId/resolve",X,async e=>{try{const{env:t}=e,{InvoiceDisputeService:s}=await Promise.resolve().then(()=>rt),r=new Pe(t.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0}),i=new s(t.DB,r),a=parseInt(e.req.param("disputeId")),n=await e.req.json(),o=e.get("user");if(o.role!=="admin")return e.json({error:"Admin access required to resolve disputes"},403);const l=await i.resolveDispute(a,n,o.user_id);return e.json(l)}catch(t){return console.error("Resolve dispute error:",t),e.json({error:"Failed to resolve dispute"},500)}});K.get("/disputes/my/list",X,async e=>{try{const{env:t}=e,{InvoiceDisputeService:s}=await Promise.resolve().then(()=>rt),r=new Pe(t.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0}),i=new s(t.DB,r),a=e.get("user"),n=e.req.query("status"),o=parseInt(e.req.query("limit")||"20"),l=parseInt(e.req.query("offset")||"0"),d=await i.listDisputes({user_id:a.user_id,status:n,limit:o,offset:l});return e.json(d)}catch(t){return console.error("List user disputes error:",t),e.json({error:"Failed to list disputes"},500)}});K.get("/admin/disputes/list",X,async e=>{try{const{env:t}=e,{InvoiceDisputeService:s}=await Promise.resolve().then(()=>rt),r=new Pe(t.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0}),i=new s(t.DB,r);if(e.get("user").role!=="admin")return e.json({error:"Admin access required"},403);const n={status:e.req.query("status"),dispute_type:e.req.query("dispute_type"),priority:e.req.query("priority"),assigned_to:e.req.query("assigned_to")?parseInt(e.req.query("assigned_to")):void 0,limit:parseInt(e.req.query("limit")||"50"),offset:parseInt(e.req.query("offset")||"0")},o=await i.listDisputes(n);return e.json(o)}catch(t){return console.error("Admin list disputes error:",t),e.json({error:"Failed to list disputes"},500)}});K.get("/admin/disputes/analytics",X,async e=>{try{const{env:t}=e,{InvoiceDisputeService:s}=await Promise.resolve().then(()=>rt),r=new Pe(t.STRIPE_SECRET_KEY,{apiVersion:"2024-11-20.acacia",typescript:!0}),i=new s(t.DB,r);if(e.get("user").role!=="admin")return e.json({error:"Admin access required"},403);const n={start_date:e.req.query("start_date"),end_date:e.req.query("end_date"),dispute_type:e.req.query("dispute_type")},o=await i.getDisputeAnalytics(n);return e.json(o)}catch(t){return console.error("Dispute analytics error:",t),e.json({error:"Failed to get dispute analytics"},500)}});class tt{constructor(t,s){this.db=t,this.r2=s}async uploadFile(t){try{const s=this.validateFile(t);if(!s.isValid)return{success:!1,error:s.error};const r=this.generateStoredName(t.originalName),i=this.generateStoragePath(t.uploadedBy,r),a=await this.calculateFileHash(t.file),n=await this.findFileByHash(a,t.uploadedBy);if(n)return{success:!0,file:n,fileId:n.id};const o=t.file instanceof File?t.file.size:t.file.byteLength,l=await this.uploadToR2(i,t.file);if(!l.success)return{success:!1,error:l.error};const d=await this.storeFileMetadata({original_name:t.originalName,stored_name:r,file_size:o,mime_type:t.mimeType,file_hash:a,storage_path:i,uploaded_by:t.uploadedBy,upload_session_id:t.uploadSessionId,expires_at:t.expiresAt,is_public:t.isPublic||!1,virus_scan_status:"pending",processing_status:"pending"});return(t.conversationId||t.messageId)&&await this.associateFileWithMessage(d.id,t.conversationId,t.messageId),t.relatedEntityType&&t.relatedEntityId&&await this.associateFileWithEntity(d.id,t.relatedEntityType,t.relatedEntityId),await this.initiateBackgroundProcessing(d.id),{success:!0,file:d,fileId:d.id}}catch(s){return console.error("File upload failed:",s),{success:!1,error:s instanceof Error?s.message:"File upload failed"}}}async downloadFile(t,s){try{const r=await this.getFileById(t);if(!r)return{success:!1,error:"File not found"};if(!await this.checkFilePermission(t,s.userId,s.userRole,"download"))return{success:!1,error:"Access denied"};if(r.virus_scan_status==="infected")return{success:!1,error:"File infected by virus, download not allowed"};if(r.expires_at&&new Date(r.expires_at)<new Date)return{success:!1,error:"File has expired"};const a=await this.r2.get(r.storage_path);return a?(s.trackDownload&&await this.trackFileDownload(t,s.userId),{success:!0,file:await a.arrayBuffer(),metadata:r}):{success:!1,error:"File not found in storage"}}catch(r){return console.error("File download failed:",r),{success:!1,error:r instanceof Error?r.message:"File download failed"}}}async getFileDownloadUrl(t,s,r,i=3600){try{if(!await this.checkFilePermission(t,s,r,"download"))return{success:!1,error:"Access denied"};const n=await this.getFileById(t);return n?{success:!0,url:await this.generateSignedUrl(n.storage_path,i)}:{success:!1,error:"File not found"}}catch(a){return console.error("Failed to generate download URL:",a),{success:!1,error:a instanceof Error?a.message:"Failed to generate download URL"}}}async searchFiles(t){try{let s=`
         SELECT DISTINCT f.*, u.name as uploader_name
         FROM file_metadata f
         LEFT JOIN users u ON f.uploaded_by = u.id
