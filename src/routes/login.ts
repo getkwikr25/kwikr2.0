@@ -114,13 +114,13 @@ loginRoutes.get('/', async (c) => {
                         </div>
 
                         <div class="mt-4 grid grid-cols-2 gap-3">
-                            <button type="button" onclick="demoLogin('client')"
+                            <button type="button" data-demo-role="client"
                                     class="w-full inline-flex justify-center items-center py-2 px-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
                                 <i class="fas fa-user mr-2"></i>
                                 Demo Client
                             </button>
 
-                            <button type="button" onclick="demoLogin('worker')"
+                            <button type="button" data-demo-role="worker"
                                     class="w-full inline-flex justify-center items-center py-2 px-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
                                 <i class="fas fa-tools mr-2"></i>
                                 Demo Worker
@@ -192,8 +192,7 @@ loginRoutes.get('/', async (c) => {
             });
 
             // Demo login function
-            async function demoLogin(userType) {
-                const button = document.querySelector(`[onclick="demoLogin('${userType}')"]`);
+            async function demoLogin(userType, button) {
                 const originalText = button.innerHTML;
                 
                 try {
@@ -239,6 +238,16 @@ loginRoutes.get('/', async (c) => {
                     button.disabled = false;
                 }
             }
+
+            // Add event listeners for demo login buttons
+            document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('[data-demo-role]').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const userType = this.getAttribute('data-demo-role');
+                        demoLogin(userType, this);
+                    });
+                });
+            });
         </script>
     </body>
     </html>
