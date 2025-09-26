@@ -8,7 +8,8 @@ export const loginRoutes = new Hono<{ Bindings: Bindings }>()
 
 // Login Page
 loginRoutes.get('/', async (c) => {
-  return c.html(`
+  try {
+    return c.html(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -242,4 +243,8 @@ loginRoutes.get('/', async (c) => {
     </body>
     </html>
   `)
+  } catch (error) {
+    console.error('Login page error:', error)
+    return c.html(`<html><body><h1>Login Page Error</h1><p>Please try again later.</p></body></html>`)
+  }
 })

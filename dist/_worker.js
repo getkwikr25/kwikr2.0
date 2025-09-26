@@ -11585,7 +11585,7 @@ var Wc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var zc=(e,t,s)=>t in
         <script src="/static/terms-modal.js"><\/script>
     </body>
     </html>
-  `));var ko=Object.freeze,dv=Object.defineProperty,cv=(e,t)=>ko(dv(e,"raw",{value:ko(e.slice())})),To;const ic=new ue;ic.get("/",async e=>e.html(`
+  `));var ko=Object.freeze,dv=Object.defineProperty,cv=(e,t)=>ko(dv(e,"raw",{value:ko(e.slice())})),To;const ic=new ue;ic.get("/",async e=>{try{return e.html(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -11818,7 +11818,7 @@ var Wc=Object.defineProperty;var zn=e=>{throw TypeError(e)};var zc=(e,t,s)=>t in
         <\/script>
     </body>
     </html>
-  `])))));const xn=new ue;xn.get("/terms",async e=>e.html(`
+  `]))))}catch(t){return console.error("Login page error:",t),e.html("<html><body><h1>Login Page Error</h1><p>Please try again later.</p></body></html>")}});const xn=new ue;xn.get("/terms",async e=>e.html(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -13844,7 +13844,7 @@ Resolution: ${r.notes}`,!1),await this.notifyDisputeResolved(t,r),await this.can
       WHERE id = ? AND (user_id = ? OR ? = 'admin')
     `).bind(s,r,i).first()?(await t.prepare(`
       DELETE FROM communication_notifications WHERE id = ?
-    `).bind(s).run(),e.json({success:!0,message:"Notification deleted successfully"})):e.json({success:!1,error:"Notification not found"},404):e.json({success:!1,error:"Authentication required"},401)}catch(t){return console.error("Delete notification error:",t),e.json({success:!1,error:"Internal server error deleting notification"},500)}});const P=new ue;P.use("/api/*",ln());P.use("/static/*",Au({root:"./public"}));P.route("/api/auth",as);P.route("/api/jobs",Qe);P.route("/api/users",Xe);P.route("/api/admin",B);P.route("/api/worker",D);P.route("/api/client",Se);P.route("/api/compliance",$s);P.route("/api/subscriptions",et);P.route("/api/payments",re);P.route("/api/webhooks",Oc);P.route("/api/invoices",K);P.route("/api/files",Me);P.route("/api/notifications",Le);P.route("/admin",cn);P.route("/subscriptions",rc);P.route("/dashboard",Y);P.route("/signup",yn);P.route("/auth/login",ic);P.route("/legal",xn);P.get("/universal-profile/:id",async e=>{var t,s,r,i,a,n,o,l,d,c,u,p,m;try{const h=e.req.param("id"),f=await e.env.DB.prepare(`
+    `).bind(s).run(),e.json({success:!0,message:"Notification deleted successfully"})):e.json({success:!1,error:"Notification not found"},404):e.json({success:!1,error:"Authentication required"},401)}catch(t){return console.error("Delete notification error:",t),e.json({success:!1,error:"Internal server error deleting notification"},500)}});const P=new ue;P.use("/api/*",ln());P.use("/static/*",Au({root:"./public"}));P.route("/api/auth",as);P.route("/api/jobs",Qe);P.route("/api/users",Xe);P.route("/api/admin",B);P.route("/api/worker",D);P.route("/api/client",Se);P.route("/api/compliance",$s);P.route("/api/subscriptions",et);P.route("/api/payments",re);P.route("/api/webhooks",Oc);P.route("/api/invoices",K);P.route("/api/files",Me);P.route("/api/notifications",Le);P.route("/admin",cn);P.route("/subscriptions",rc);P.route("/dashboard",Y);P.route("/signup",yn);P.route("/login",ic);P.get("/auth/login",e=>e.redirect("/login",301));P.route("/legal",xn);P.get("/universal-profile/:id",async e=>{var t,s,r,i,a,n,o,l,d,c,u,p,m;try{const h=e.req.param("id"),f=await e.env.DB.prepare(`
       SELECT 
         u.id, u.first_name, u.last_name, u.email, u.phone,
         u.province, u.city, u.created_at, u.is_verified, u.is_active

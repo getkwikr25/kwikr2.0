@@ -71,7 +71,12 @@ app.route('/dashboard', dashboardRoutes)
 app.route('/signup', signupRoutes)
 
 // Login Routes (SSR) 
-app.route('/auth/login', loginRoutes)
+app.route('/login', loginRoutes)
+
+// Redirect /auth/login to /login for compatibility
+app.get('/auth/login', (c) => {
+  return c.redirect('/login', 301)
+})
 
 // Legal Routes (SSR)
 app.route('/legal', legalRoutes)
