@@ -125,7 +125,7 @@ authRoutes.post('/register', async (c) => {
     // Set session cookie for dashboard authentication
     const host = c.req.header('host') || ''
     const isHttps = host.includes('.dev') || c.req.header('x-forwarded-proto') === 'https'
-    c.header('Set-Cookie', `session=${sessionToken}; path=/; max-age=604800; secure=${isHttps}; samesite=lax`)
+    c.header('Set-Cookie', `session=${sessionToken}; Path=/; Max-Age=604800; HttpOnly; SameSite=None; Secure`)
     
     return c.json({ 
       success: true,
@@ -220,7 +220,7 @@ authRoutes.post('/login', async (c) => {
     // Set session cookie for dashboard authentication
     const host = c.req.header('host') || ''
     const isHttps = host.includes('.dev') || c.req.header('x-forwarded-proto') === 'https'
-    c.header('Set-Cookie', `session=${sessionToken}; path=/; max-age=604800; secure=${isHttps}; samesite=lax`)
+    c.header('Set-Cookie', `session=${sessionToken}; Path=/; Max-Age=604800; HttpOnly; SameSite=None; Secure`)
     
     return c.json({
       message: 'Login successful',
@@ -458,8 +458,9 @@ authRoutes.post('/demo-login', async (c) => {
     // Set session cookie for browser access using direct header approach
     const isHttps = c.req.header('x-forwarded-proto') === 'https' || c.req.url.startsWith('https://')
     
-    // Use direct Set-Cookie header approach that we know works
-    c.header('Set-Cookie', `session=${sessionToken}; Path=/; Max-Age=604800; HttpOnly; SameSite=Lax${isHttps ? '; Secure' : ''}`)
+    // Use direct Set-Cookie header approach that works for browsers
+    // SameSite=None with Secure is required for cross-origin cookie setting via AJAX
+    c.header('Set-Cookie', `session=${sessionToken}; Path=/; Max-Age=604800; HttpOnly; SameSite=None; Secure`)
     
     return c.json({
       message: 'Demo login successful',
