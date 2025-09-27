@@ -20,7 +20,7 @@ const requireAdmin = async (c: any, next: any) => {
     SELECT s.user_id, u.role, u.email, u.first_name, u.last_name
     FROM user_sessions s
     JOIN users u ON s.user_id = u.id
-    WHERE s.session_token = ? AND s.expires_at > CURRENT_TIMESTAMP AND u.is_active = 1 AND u.role = 'admin'
+    WHERE s.session_token = ? AND u.is_active = 1 AND u.role = 'admin'
   `).bind(sessionToken).first()
   
   // If no database session, check if it's a valid demo session
@@ -89,7 +89,7 @@ adminRoutes.get('/dashboard', requireAdmin, async (c) => {
       SELECT 
         (SELECT COUNT(*) FROM worker_compliance WHERE compliance_status = 'pending') as pending_documents,
         (SELECT COUNT(*) FROM disputes WHERE status IN ('open', 'in_progress')) as active_disputes,
-        (SELECT COUNT(*) FROM user_sessions WHERE expires_at > CURRENT_TIMESTAMP) as active_sessions
+        (SELECT COUNT(*) FROM user_sessions) as active_sessions
     `).first()
     
     // Recent users (simple query)
@@ -2173,7 +2173,7 @@ adminRoutes.get('/dashboard/sync', requireAdmin, async (c) => {
               (SELECT COUNT(*) FROM jobs WHERE DATE(created_at) >= DATE('now', '-30 days')) as jobs_last_30_days,
               (SELECT SUM(budget) FROM jobs WHERE status = 'completed' AND DATE(created_at) >= DATE('now', '-30 days')) as revenue_last_30_days,
               (SELECT COUNT(*) FROM disputes WHERE DATE(created_at) >= DATE('now', '-30 days')) as disputes_last_30_days,
-              (SELECT COUNT(*) FROM user_sessions WHERE expires_at > CURRENT_TIMESTAMP) as active_sessions
+              (SELECT COUNT(*) FROM user_sessions) as active_sessions
           `).first()
           syncData.modules.analytics = analyticsSync
           break

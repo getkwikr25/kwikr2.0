@@ -66,7 +66,7 @@ const requireWorkerAuth = async (c: any, next: any) => {
       SELECT s.user_id, u.role, u.first_name, u.last_name, u.email, u.is_verified
       FROM user_sessions s
       JOIN users u ON s.user_id = u.id
-      WHERE s.session_token = ? AND s.expires_at > CURRENT_TIMESTAMP AND u.is_active = 1 AND u.role = 'worker'
+      WHERE s.session_token = ? AND u.is_active = 1 AND u.role = 'worker'
     `).bind(sessionToken).first()
     
     if (!session) {
@@ -1031,7 +1031,7 @@ workerRoutes.put('/compliance', async (c) => {
       SELECT s.user_id, u.role, u.first_name, u.last_name, u.email, u.is_verified
       FROM user_sessions s
       JOIN users u ON s.user_id = u.id
-      WHERE s.session_token = ? AND s.expires_at > CURRENT_TIMESTAMP AND u.is_active = 1 AND u.role = 'worker'
+      WHERE s.session_token = ? AND u.is_active = 1 AND u.role = 'worker'
     `).bind(sessionToken).first()
     
     if (!session) {

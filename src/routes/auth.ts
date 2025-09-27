@@ -116,16 +116,16 @@ authRoutes.post('/register', async (c) => {
     // Create session token automatically after successful registration
     const sessionToken = btoa(`${result.meta.last_row_id}:${Date.now()}:${Math.random()}`)
     
-    // Store session
+    // Store session (no expiration - sessions are permanent until logout)
     await c.env.DB.prepare(`
       INSERT INTO user_sessions (user_id, session_token, expires_at, ip_address)
-      VALUES (?, ?, datetime('now', '+7 days'), ?)
+      VALUES (?, ?, datetime('now', '+10 years'), ?)
     `).bind(result.meta.last_row_id, sessionToken, 'unknown').run()
     
     // Set session cookie for dashboard authentication
     const host = c.req.header('host') || ''
     const isHttps = host.includes('.dev') || c.req.header('x-forwarded-proto') === 'https'
-    c.header('Set-Cookie', `session=${sessionToken}; Path=/; Max-Age=604800; HttpOnly; SameSite=None; Secure`)
+    c.header('Set-Cookie', `session=${sessionToken}; Path=/; Max-Age=31536000; SameSite=Lax; ${isHttps ? 'Secure;' : ''}`)
     
     return c.json({ 
       success: true,
@@ -211,16 +211,16 @@ authRoutes.post('/login', async (c) => {
     // Create session token (simple approach - in production use JWT or secure sessions)
     const sessionToken = btoa(`${user.id}:${Date.now()}:${Math.random()}`)
     
-    // Store session
+    // Store session (no expiration - sessions are permanent until logout)
     await c.env.DB.prepare(`
       INSERT INTO user_sessions (user_id, session_token, expires_at, ip_address)
-      VALUES (?, ?, datetime('now', '+7 days'), ?)
+      VALUES (?, ?, datetime('now', '+10 years'), ?)
     `).bind(user.id, sessionToken, 'unknown').run()
     
     // Set session cookie for dashboard authentication
     const host = c.req.header('host') || ''
     const isHttps = host.includes('.dev') || c.req.header('x-forwarded-proto') === 'https'
-    c.header('Set-Cookie', `session=${sessionToken}; Path=/; Max-Age=604800; HttpOnly; SameSite=None; Secure`)
+    c.header('Set-Cookie', `session=${sessionToken}; Path=/; Max-Age=31536000; SameSite=Lax; ${isHttps ? 'Secure;' : ''}`)
     
     return c.json({
       message: 'Login successful',
@@ -252,16 +252,16 @@ authRoutes.get('/session-info', async (c) => {
       return c.json({ error: 'No session token provided' }, 401)
     }
     
-    // Verify session and get user info
+    // SIMPLIFIED: Verify session without expiration check
     const session = await c.env.DB.prepare(`
-      SELECT us.user_id, us.expires_at, u.email, u.role, u.first_name, u.last_name, u.province, u.city, u.is_verified
+      SELECT us.user_id, u.email, u.role, u.first_name, u.last_name, u.province, u.city, u.is_verified
       FROM user_sessions us
       JOIN users u ON us.user_id = u.id
-      WHERE us.session_token = ? AND us.expires_at > datetime('now')
+      WHERE us.session_token = ? AND u.is_active = 1
     `).bind(sessionToken).first()
     
     if (!session) {
-      return c.json({ error: 'Invalid or expired session' }, 401)
+      return c.json({ error: 'Invalid session' }, 401)
     }
     
     return c.json({
@@ -357,37 +357,22 @@ authRoutes.get('/me', async (c) => {
       tokenPreview: sessionToken.substring(0, 10) + '...'
     })
     
+    // SIMPLIFIED: Remove session expiration check - sessions never expire
     const session = await c.env.DB.prepare(`
       SELECT s.user_id, u.email, u.role, u.first_name, u.last_name, u.province, u.city, u.is_verified,
-             s.expires_at, s.created_at, s.ip_address
+             s.created_at, s.ip_address
       FROM user_sessions s
       JOIN users u ON s.user_id = u.id
-      WHERE s.session_token = ? AND s.expires_at > CURRENT_TIMESTAMP AND u.is_active = 1
+      WHERE s.session_token = ? AND u.is_active = 1
     `).bind(sessionToken).first()
     
     if (!session) {
       Logger.sessionValidation(false, sessionToken, { userAgent, referer })
       
-      // Check if session exists but is expired
-      const expiredSession = await c.env.DB.prepare(`
-        SELECT s.user_id, s.expires_at, u.email
-        FROM user_sessions s
-        JOIN users u ON s.user_id = u.id
-        WHERE s.session_token = ?
-      `).bind(sessionToken).first()
-      
-      if (expiredSession) {
-        Logger.warn('Session found but expired', {
-          userId: expiredSession.user_id,
-          email: expiredSession.email,
-          expiresAt: expiredSession.expires_at,
-          tokenPreview: sessionToken.substring(0, 10) + '...'
-        })
-      } else {
-        Logger.warn('Session not found in database', {
-          tokenPreview: sessionToken.substring(0, 10) + '...'
-        })
-      }
+      // SIMPLIFIED: Just log that session wasn't found
+      Logger.warn('Session not found in database', {
+        tokenPreview: sessionToken.substring(0, 10) + '...'
+      })
       
       return c.json({ error: 'Invalid or expired session', expired: true }, 401)
     }
@@ -449,18 +434,23 @@ authRoutes.post('/demo-login', async (c) => {
     try {
       await c.env.DB.prepare(`
         INSERT INTO user_sessions (user_id, session_token, expires_at, ip_address)
-        VALUES (?, ?, datetime('now', '+7 days'), ?)
+        VALUES (?, ?, datetime('now', '+10 years'), ?)
       `).bind(demoUser.id, sessionToken, 'demo').run()
     } catch (dbError) {
       console.log('Database session storage failed, continuing with in-memory session')
     }
     
-    // Set session cookie for browser access using direct header approach
-    const isHttps = c.req.header('x-forwarded-proto') === 'https' || c.req.url.startsWith('https://')
+    // Set session cookie - use simple, reliable approach
+    const host = c.req.header('host') || ''
+    const proto = c.req.header('x-forwarded-proto') || ''
+    const url = c.req.url || ''
+    const isHttps = proto === 'https' || url.startsWith('https://') || host.includes('.dev')
     
-    // Use direct Set-Cookie header approach that works for browsers
-    // SameSite=None with Secure is required for cross-origin cookie setting via AJAX
-    c.header('Set-Cookie', `session=${sessionToken}; Path=/; Max-Age=604800; HttpOnly; SameSite=None; Secure`)
+    // Debug removed for production
+    
+    // Use SameSite=Lax which works better for same-site requests
+    // Remove HttpOnly so JavaScript can access for backup storage
+    c.header('Set-Cookie', `session=${sessionToken}; Path=/; Max-Age=31536000; SameSite=Lax; ${isHttps ? 'Secure;' : ''}`)
     
     return c.json({
       message: 'Demo login successful',

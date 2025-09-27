@@ -214,15 +214,41 @@ loginRoutes.get('/', async (c) => {
                     if (response.ok) {
                         const data = await response.json();
                         
-                        // Server should have set session cookie automatically
-                        // Redirect to appropriate dashboard
-                        if (userType === 'client') {
-                            window.location.href = '/dashboard/client';
-                        } else if (userType === 'worker') {
-                            window.location.href = '/dashboard/worker';
-                        } else if (userType === 'admin') {
-                            window.location.href = '/dashboard/admin';
+                        // Store session token in multiple places for reliability
+                        if (data.sessionToken) {
+                            // Store in localStorage as backup
+                            localStorage.setItem('sessionToken', data.sessionToken);
+                            
+                            // Also set cookie manually as additional backup
+                            document.cookie = \`session=\${data.sessionToken}; path=/; max-age=31536000; samesite=lax\`;
                         }
+                        
+                        // Extended delay to ensure cookie is set properly in all browsers  
+                        setTimeout(() => {
+                            // Verify cookie was set before redirecting
+                            const cookieSet = document.cookie.includes('session=');
+                            console.log('Cookie verification before redirect:', cookieSet);
+                            
+                            if (!cookieSet) {
+                                console.warn('Session cookie not found, retrying...');
+                                // If cookie not set, try again with longer delay
+                                setTimeout(() => {
+                                    window.location.href = userType === 'client' ? '/dashboard/client' : 
+                                                         userType === 'worker' ? '/dashboard/worker' : '/dashboard/admin';
+                                }, 1000);
+                                return;
+                            }
+                            
+                            // Redirect to appropriate dashboard
+                            if (userType === 'client') {
+                                window.location.href = '/dashboard/client';
+                            } else if (userType === 'worker') {
+                                window.location.href = '/dashboard/worker';
+                            } else if (userType === 'admin') {
+                                window.location.href = '/dashboard/admin';
+                            }
+                        }, 500); // Increased from 100ms to 500ms
+                        
                     } else {
                         const error = await response.json();
                         alert('Demo login failed: ' + (error.error || 'Please try again'));

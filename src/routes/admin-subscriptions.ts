@@ -383,6 +383,7 @@ adminSubscriptionRoutes.get('/subscriptions', async (c) => {
                           headers: {
                               'Content-Type': 'application/json'
                           },
+                          credentials: 'include',  // Include session cookies
                           body: JSON.stringify({
                               monthly_price: monthlyPrice,
                               annual_price: annualPrice,

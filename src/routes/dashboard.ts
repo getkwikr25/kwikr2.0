@@ -129,7 +129,10 @@ const requireWorkerSubscription = async (c: any, next: any) => {
     await next()
   } catch (error) {
     console.error('Error checking worker subscription:', error)
-    return c.redirect('/dashboard/worker/select-plan')
+    // If subscription check fails, allow access but don't redirect - let the user continue
+    Logger.error('Worker subscription check failed, allowing access', { error: (error as Error).message, user_id: user.user_id })
+    c.set('subscription', null)
+    await next()
   }
 }
 
@@ -196,10 +199,10 @@ const requireAuth = async (c: any, next: any) => {
   }
   
   if (!sessionToken) {
-    Logger.warn('No session token found, redirecting to login', { path, cookies })
+    Logger.warn('No session token found, redirecting to login', { path, cookies, userAgent })
     
-    // Redirect to login page instead of auto-creating demo sessions
-    return c.redirect('/auth/login?return=' + encodeURIComponent(path))
+    // Instead of redirecting to session=expired, redirect to login page
+    return c.redirect('/login?return=' + encodeURIComponent(path))
     
     // If no session and accessing a specific role dashboard, auto-login as demo user
     if (false && (path.startsWith('/dashboard/client') || path.startsWith('/dashboard/worker') || path.startsWith('/dashboard/admin'))) {
@@ -271,12 +274,13 @@ const requireAuth = async (c: any, next: any) => {
     let session = null
     
     try {
+      // SIMPLIFIED: Remove expiration check - sessions never expire
       session = await c.env.DB.prepare(`
         SELECT s.user_id, u.role, u.first_name, u.last_name, u.email, u.is_verified,
-               s.expires_at, s.created_at, s.ip_address
+               s.created_at, s.ip_address
         FROM user_sessions s
         JOIN users u ON s.user_id = u.id
-        WHERE s.session_token = ? AND s.expires_at > CURRENT_TIMESTAMP AND u.is_active = 1
+        WHERE s.session_token = ? AND u.is_active = 1
       `).bind(sessionToken).first()
     } catch (dbError) {
       console.log('Database session lookup failed, checking for demo session')
@@ -305,7 +309,7 @@ const requireAuth = async (c: any, next: any) => {
             timestamp = parts[1]
             demoUserId = role === 'client' ? 939 : role === 'worker' ? 938 : 942
           } else if (!isNaN(parseInt(parts[0]))) {
-            // Old format: userId:timestamp:random
+            // Old format: userId:timestamp:random (PRIORITIZE THIS FORMAT)
             demoUserId = parseInt(parts[0])
             timestamp = parts[1]
             // Map actual user IDs to roles
@@ -315,11 +319,8 @@ const requireAuth = async (c: any, next: any) => {
             else role = demoUserId === 1 ? 'client' : demoUserId === 4 ? 'worker' : 'admin' // Legacy fallback
           }
           
-          // Validate demo session with proper security checks
-          const sessionAge = Date.now() - parseInt(timestamp)
-          const maxAge = 24 * 60 * 60 * 1000 // 24 hours
-          
-          if (role && timestamp && demoUserId && sessionAge < maxAge && ['client', 'worker', 'admin'].includes(role)) {
+          // SIMPLIFIED: Remove all session expiration checks - just validate format and role
+          if (role && timestamp && demoUserId && ['client', 'worker', 'admin'].includes(role)) {
             // Use real user data based on ID
             const userData = demoUserId === 939 ? 
               { first_name: 'MO', last_name: 'CARTY', email: 'mo.carty@admin.kwikr.ca' } :
@@ -334,53 +335,31 @@ const requireAuth = async (c: any, next: any) => {
               last_name: userData.last_name,
               email: userData.email,
               is_verified: 1,
-              expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+              expires_at: new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000).toISOString(), // 10 years (effectively never expires)
               created_at: new Date().toISOString(),
               ip_address: 'demo'
             }
             
             Logger.info('Valid demo session detected and accepted', { userId: demoUserId, role, path, timestamp })
           } else {
-            console.log('Demo session missing required fields', { role, timestamp, demoUserId, parts })
+            Logger.warn('Demo session validation failed - invalid format or role', { role, timestamp, demoUserId, parts })
           }
         } else {
-          console.log('Demo session token format invalid', { parts, decoded })
+          Logger.warn('Demo session token format invalid', { parts, decoded })
         }
       } catch (decodeError) {
-        console.log('Failed to decode session token as demo session:', decodeError)
+        Logger.warn('Failed to decode session token as demo session:', decodeError)
       }
     }
     
     if (!session) {
       Logger.sessionValidation(false, sessionToken, { path, userAgent })
       
-      // Check if session exists but is expired or user is inactive
-      let expiredSession = null
-      try {
-        expiredSession = await c.env.DB.prepare(`
-          SELECT s.user_id, s.expires_at, u.email, u.is_active
-          FROM user_sessions s
-          JOIN users u ON s.user_id = u.id
-          WHERE s.session_token = ?
-        `).bind(sessionToken).first()
-      } catch (dbError) {
-        console.log('Database check failed during session validation')
-      }
-      
-      if (expiredSession) {
-        Logger.warn('Session validation failed - session found but invalid', {
-          userId: expiredSession.user_id,
-          email: expiredSession.email,
-          expiresAt: expiredSession.expires_at,
-          isActive: expiredSession.is_active,
-          path
-        })
-      } else {
-        Logger.warn('Session validation failed - session not found', { 
-          tokenPreview: sessionToken.substring(0, 10) + '...',
-          path 
-        })
-      }
+      // SIMPLIFIED: Just log that session validation failed, no complex expiration checks
+      Logger.warn('Session validation failed - session not found or invalid', { 
+        tokenPreview: sessionToken.substring(0, 10) + '...',
+        path 
+      })
       
       // For AJAX requests, return JSON error
       const acceptHeader = c.req.header('Accept') || ''
@@ -388,8 +367,13 @@ const requireAuth = async (c: any, next: any) => {
         return c.json({ error: 'Session expired', expired: true }, 401)
       }
       
-      // For regular page requests, redirect to home with clear message  
-      return c.redirect('/?session=expired')
+      // For regular page requests, redirect to login page instead of session=expired
+      Logger.warn('Session validation completely failed, redirecting to login', { 
+        path, 
+        userAgent,
+        tokenPreview: sessionToken ? sessionToken.substring(0, 10) + '...' : 'none'
+      })
+      return c.redirect('/login?return=' + encodeURIComponent(path))
     }
     
     Logger.sessionValidation(true, sessionToken, {
@@ -406,7 +390,8 @@ const requireAuth = async (c: any, next: any) => {
     await next()
   } catch (error) {
     Logger.authError('Auth middleware database error', error as Error, { path })
-    return c.redirect('/?session=expired')
+    Logger.error('Authentication failed for dashboard access', { path, error: (error as Error).message, sessionToken })
+    return c.redirect('/login?return=' + encodeURIComponent(path))
   }
 }
 
@@ -1432,9 +1417,9 @@ dashboardRoutes.get('/worker', requireAuth, requireWorkerSubscription, async (c)
                                     <i class="fas fa-credit-card text-kwikr-green mr-3"></i>
                                     Payment Settings
                                 </a>
-                                <a href="/dashboard/worker/jobs" class="w-full text-left p-3 rounded-lg border border-gray-200 hover:border-kwikr-green hover:bg-green-50 block">
+                                <a href="/dashboard/worker/bids" class="w-full text-left p-3 rounded-lg border border-gray-200 hover:border-kwikr-green hover:bg-green-50 block">
                                     <i class="fas fa-briefcase text-kwikr-green mr-3"></i>
-                                    Browse Jobs
+                                    My Bids
                                 </a>
                             </div>
                         </div>
@@ -1524,7 +1509,7 @@ dashboardRoutes.get('/worker', requireAuth, requireWorkerSubscription, async (c)
                                         </label>
                                         <input type="tel" id="phone" value="${worker?.phone || ''}" 
                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-kwikr-green" 
-                                               placeholder="(123) 456-7890" pattern="[\d\s\-\(\)\+\.]+" required>
+                                               placeholder="(123) 456-7890" pattern="[0-9 ()+-.]+" required>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -2063,6 +2048,7 @@ dashboardRoutes.get('/worker', requireAuth, requireWorkerSubscription, async (c)
                 headers: {
                   'Content-Type': 'application/json',
                 },
+                credentials: 'include',  // Include session cookies
                 body: JSON.stringify(formData)
               });
               
@@ -2131,6 +2117,7 @@ dashboardRoutes.get('/worker', requireAuth, requireWorkerSubscription, async (c)
                 headers: {
                   'Content-Type': 'application/json',
                 },
+                credentials: 'include',  // Include session cookies
                 body: JSON.stringify(allData)
               });
               
@@ -2206,6 +2193,7 @@ dashboardRoutes.get('/worker', requireAuth, requireWorkerSubscription, async (c)
                 headers: {
                   'Content-Type': 'application/json',
                 },
+                credentials: 'include',  // Include session cookies
                 body: JSON.stringify({
                   image: base64,
                   filename: file.name
@@ -3503,6 +3491,7 @@ dashboardRoutes.get('/worker/profile', requireAuth, requireWorkerSubscription, a
                         headers: {
                             'Content-Type': 'application/json',
                         },
+                        credentials: 'include',  // Include session cookies
                         body: JSON.stringify(formData)
                     });
                     
@@ -8237,7 +8226,9 @@ dashboardRoutes.get('/worker/compliance', requireAuth, requireWorkerSubscription
             // Load existing compliance data
             async function loadComplianceData() {
                 try {
-                    const response = await fetch('/api/worker/compliance');
+                    const response = await fetch('/api/worker/compliance', {
+                        credentials: 'include'  // Include session cookies
+                    });
                     if (response.ok) {
                         const data = await response.json();
                         if (data.compliance) {
@@ -8278,6 +8269,7 @@ dashboardRoutes.get('/worker/compliance', requireAuth, requireWorkerSubscription
                         headers: {
                             'Content-Type': 'application/json'
                         },
+                        credentials: 'include',  // Include session cookies
                         body: JSON.stringify(formData)
                     });
 

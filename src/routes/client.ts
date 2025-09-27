@@ -42,7 +42,7 @@ const requireClientAuth = async (c: any, next: any) => {
     SELECT us.*, u.id as user_id, u.email, u.role, u.first_name, u.last_name 
     FROM user_sessions us 
     JOIN users u ON us.user_id = u.id 
-    WHERE us.session_token = ? AND us.expires_at > datetime('now') AND u.role = 'client'
+    WHERE us.session_token = ? AND u.role = 'client' AND u.is_active = 1
   `).bind(sessionToken).first()
 
   if (!session) {

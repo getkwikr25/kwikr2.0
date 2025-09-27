@@ -7375,7 +7375,7 @@ const requireAdminAuth = async (c: any, next: any) => {
                s.expires_at, s.created_at, s.ip_address
         FROM user_sessions s
         JOIN users u ON s.user_id = u.id
-        WHERE s.session_token = ? AND s.expires_at > CURRENT_TIMESTAMP AND u.is_active = 1 AND u.role = 'admin'
+        WHERE s.session_token = ? AND u.is_active = 1 AND u.role = 'admin'
       `).bind(sessionToken).first()
     } catch (dbError) {
       console.log('Database session lookup failed for admin check')

@@ -30,6 +30,7 @@ if (typeof window.apiRequest === 'undefined') {
         'Content-Type': 'application/json',
         ...(token && { 'Authorization': `Bearer ${token}` })
       },
+      credentials: 'include', // CRITICAL: Include cookies with all API calls
       ...options
     }
     
@@ -164,7 +165,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log('Dashboard initialization error:', error)
     // Only redirect if it's a session expiration error
     if (error.sessionExpired) {
-      window.location.href = '/?message=session_expired'
+      window.location.href = '/login'
     }
   }
 })
@@ -182,7 +183,7 @@ async function loadUserInfo() {
       
       if (!response.user) {
         console.log('No user found in response - redirecting to home')
-        window.location.href = '/?message=session_expired'
+        window.location.href = '/login'
         return
       }
       
@@ -208,7 +209,7 @@ async function loadUserInfo() {
     
   } catch (error) {
     console.error('Failed to load user info:', error)
-    window.location.href = '/?session=expired'
+    window.location.href = '/login'
   }
 }
 

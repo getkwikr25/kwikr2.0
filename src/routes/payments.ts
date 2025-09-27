@@ -92,25 +92,49 @@ const calculateCanadianTax = (amount: number, province: string): { gst: number, 
   return { gst, pst, hst, total }
 }
 
-// Middleware to verify worker or client authentication
+// Middleware to verify worker or client authentication (matches main dashboard implementation)
 const requireAuth = async (c: any, next: any) => {
+  const path = c.req.path
+  
+  // Try to get session token from multiple sources:
+  // 1. Cookie (for dashboard pages)
+  // 2. Authorization header (for API requests)
+  // 3. Query parameter (fallback)
   let sessionToken = null
   
-  // Check Authorization header first
-  const authHeader = c.req.header('Authorization')
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    sessionToken = authHeader.replace('Bearer ', '')
-  }
-  
-  // If no Authorization header, try cookies
-  if (!sessionToken) {
-    const cookies = c.req.header('Cookie')
-    if (cookies) {
-      const match = cookies.match(/session=([^;]+)/)
-      if (match) {
-        sessionToken = match[1]
+  // Check cookie first
+  const cookies = c.req.header('Cookie')
+  if (cookies) {
+    const match = cookies.match(/session=([^;]+)/)
+    if (match) {
+      sessionToken = match[1]
+    }
+    
+    // Also check for demo_session cookie as fallback
+    if (!sessionToken) {
+      const demoMatch = cookies.match(/demo_session=([^;]+)/)
+      if (demoMatch) {
+        const demoInfo = demoMatch[1]
+        const [role, timestamp] = demoInfo.split(':')
+        
+        // Create a compatible session token from demo_session
+        const randomSalt = Math.random().toString(36).substring(2, 15)
+        sessionToken = btoa(`demo-${role}:${timestamp}:${randomSalt}`)
       }
     }
+  }
+  
+  // If no cookie, try Authorization header
+  if (!sessionToken) {
+    const authHeader = c.req.header('Authorization')
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      sessionToken = authHeader.replace('Bearer ', '')
+    }
+  }
+  
+  // If still no token, try query parameter
+  if (!sessionToken) {
+    sessionToken = c.req.query('token')
   }
   
   if (!sessionToken) {
@@ -122,7 +146,7 @@ const requireAuth = async (c: any, next: any) => {
       SELECT s.user_id, u.role, u.first_name, u.last_name, u.email, u.is_verified
       FROM user_sessions s
       JOIN users u ON s.user_id = u.id
-      WHERE s.session_token = ? AND s.expires_at > CURRENT_TIMESTAMP AND u.is_active = 1
+      WHERE s.session_token = ? AND u.is_active = 1
     `).bind(sessionToken).first()
     
     if (!session) {

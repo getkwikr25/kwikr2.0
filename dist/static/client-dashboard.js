@@ -30,6 +30,7 @@ if (typeof window.apiRequest === 'undefined') {
         'Content-Type': 'application/json',
         ...(token && { 'Authorization': `Bearer ${token}` })
       },
+      credentials: 'include', // CRITICAL: Include cookies with all API calls
       ...options
     }
     
@@ -141,7 +142,7 @@ async function loadUserInfo() {
     }
   } catch (error) {
     console.error('Failed to load user info:', error)
-    window.location.href = '/?session=expired'
+    window.location.href = '/login'
   }
 }
 
