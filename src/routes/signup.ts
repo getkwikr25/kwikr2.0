@@ -937,4 +937,108 @@ signupRoutes.get('/worker', async (c) => {
   `)
 })
 
-// Signup Selection Page removed - users go directly to /subscriptions/pricing or specific signup pages
+// Signup Selection Page - redirect to role-specific signup
+signupRoutes.get('/', async (c) => {
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Join Kwikr Directory</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+          tailwind.config = {
+            theme: {
+              extend: {
+                colors: {
+                  'kwikr-green': '#00C881',
+                  'kwikr-dark': '#1a1a1a',
+                  'kwikr-gray': '#f8f9fa'
+                }
+              }
+            }
+          }
+        </script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-50 min-h-screen">
+        <!-- Navigation -->
+        <nav class="bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">
+                        <a href="/" class="text-2xl font-bold text-kwikr-green hover:text-green-600">
+                            <i class="fas fa-bolt mr-2"></i>Kwikr Directory
+                        </a>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <a href="/" class="text-gray-700 hover:text-kwikr-green">Home</a>
+                        <a href="/login" class="text-gray-700 hover:text-kwikr-green">Sign In</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-4xl w-full space-y-8">
+                <div class="text-center">
+                    <h2 class="text-4xl font-bold text-gray-900">Join Kwikr Directory</h2>
+                    <p class="mt-4 text-xl text-gray-600">Choose how you want to get started</p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-8 mt-12">
+                    <!-- Client Signup -->
+                    <div class="bg-white rounded-lg shadow-lg p-8 text-center hover:shadow-xl transition-shadow">
+                        <div class="mx-auto h-20 w-20 bg-blue-100 rounded-full flex items-center justify-center mb-6">
+                            <i class="fas fa-user text-3xl text-blue-600"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-4">I need services</h3>
+                        <p class="text-gray-600 mb-6">Find and hire trusted service providers for your projects</p>
+                        <ul class="text-left text-gray-600 mb-8 space-y-2">
+                            <li><i class="fas fa-check text-green-500 mr-2"></i>Post job requests</li>
+                            <li><i class="fas fa-check text-green-500 mr-2"></i>Get quotes from providers</li>
+                            <li><i class="fas fa-check text-green-500 mr-2"></i>Secure payment protection</li>
+                            <li><i class="fas fa-check text-green-500 mr-2"></i>Rate and review services</li>
+                        </ul>
+                        <a href="/signup/client" 
+                           class="block w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                            Sign up as Client
+                        </a>
+                    </div>
+                    
+                    <!-- Worker Signup -->
+                    <div class="bg-white rounded-lg shadow-lg p-8 text-center hover:shadow-xl transition-shadow border-2 border-kwikr-green">
+                        <div class="mx-auto h-20 w-20 bg-kwikr-green bg-opacity-10 rounded-full flex items-center justify-center mb-6">
+                            <i class="fas fa-tools text-3xl text-kwikr-green"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-4">I provide services</h3>
+                        <p class="text-gray-600 mb-6">Grow your business by connecting with clients across Canada</p>
+                        <ul class="text-left text-gray-600 mb-8 space-y-2">
+                            <li><i class="fas fa-check text-green-500 mr-2"></i>Access to verified clients</li>
+                            <li><i class="fas fa-check text-green-500 mr-2"></i>Flexible pricing plans</li>
+                            <li><i class="fas fa-check text-green-500 mr-2"></i>Business profile & portfolio</li>
+                            <li><i class="fas fa-check text-green-500 mr-2"></i>Secure payment processing</li>
+                        </ul>
+                        <a href="/signup/worker" 
+                           class="block w-full bg-kwikr-green text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors">
+                            Sign up as Service Provider
+                        </a>
+                        <p class="text-sm text-gray-500 mt-3">
+                            <i class="fas fa-star text-yellow-400 mr-1"></i>Most Popular Choice
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-8">
+                    <p class="text-gray-600">
+                        Already have an account? 
+                        <a href="/login" class="font-medium text-kwikr-green hover:text-green-600">Sign in here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+  `)
+})
