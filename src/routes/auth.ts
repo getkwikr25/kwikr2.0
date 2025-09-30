@@ -44,6 +44,25 @@ authRoutes.post('/register', async (c) => {
         console.log('Validation failed - missing worker business fields')
         return c.json({ error: 'All business fields are required for service providers' }, 400)
       }
+      
+      // Validate business email format
+      const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+      if (!emailRegex.test(businessEmail)) {
+        return c.json({ error: 'Please provide a valid business email address' }, 400)
+      }
+      
+      // Validate phone format (basic Canadian phone validation)
+      const phoneRegex = /^[\+]?[1]?[-.\s]?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})$/
+      const cleanPhone = phone.replace(/[\s\(\)\-\.]/g, '')
+      if (cleanPhone.length < 10) {
+        return c.json({ error: 'Please provide a valid 10-digit phone number' }, 400)
+      }
+      
+      // Validate business name (minimum 2 words to seem legitimate)
+      const nameParts = businessName.trim().split(' ').filter(part => part.length > 0)
+      if (nameParts.length < 1 || businessName.length < 3) {
+        return c.json({ error: 'Please provide a valid business name' }, 400)
+      }
     }
     
     // Validate role
@@ -82,11 +101,33 @@ authRoutes.post('/register', async (c) => {
       return c.json({ error: 'Failed to create user' }, 500)
     }
     
-    // Create user profile with business information for workers
+    // Validate business email uniqueness for workers
+    if (role === 'worker' && businessEmail) {
+      const existingBusinessEmail = await c.env.DB.prepare(`
+        SELECT up.user_id FROM user_profiles up 
+        JOIN users u ON up.user_id = u.id 
+        WHERE up.bio LIKE ? AND u.is_active = 1
+      `).bind(`%${businessEmail}%`).first()
+      
+      if (existingBusinessEmail) {
+        return c.json({ error: 'Business email already registered' }, 409)
+      }
+    }
+
+    // Create user profile with business information for workers  
     if (role === 'worker') {
+      // Store business info in bio field temporarily until we can add proper columns
+      const businessInfo = JSON.stringify({
+        company_name: businessName,
+        business_email: businessEmail,
+        business_phone: phone,
+        service_type: serviceType,
+        verification_status: 'pending'
+      })
+      
       await c.env.DB.prepare(`
-        INSERT INTO user_profiles (user_id, company_name) VALUES (?, ?)
-      `).bind(result.meta.last_row_id, businessName).run()
+        INSERT INTO user_profiles (user_id, bio) VALUES (?, ?)
+      `).bind(result.meta.last_row_id, businessInfo).run()
       
       // Create worker service record based on selected service type
       if (serviceType) {
@@ -97,7 +138,7 @@ authRoutes.post('/register', async (c) => {
           result.meta.last_row_id, 
           serviceType, 
           serviceType, 
-          `Professional ${serviceType} services`
+          `Professional ${serviceType} services provided by ${businessName}`
         ).run()
       }
     } else {

@@ -15,6 +15,7 @@ import { adminSubscriptionRoutes } from './routes/admin-subscriptions'
 import { signupRoutes } from './routes/signup'
 import { loginRoutes } from './routes/login'
 import { legalRoutes } from './routes/legal'
+import { verificationRoutes } from './routes/verification'
 import paymentRoutes from './routes/payments'
 import webhookRoutes from './routes/webhooks'
 import invoiceRoutes from './routes/invoices'
@@ -45,6 +46,7 @@ app.use('/static/*', serveStatic({ root: './public' }))
 
 // API Routes
 app.route('/api/auth', authRoutes)
+app.route('/api/verification', verificationRoutes)
 app.route('/api/jobs', jobRoutes)
 app.route('/api/users', userRoutes)
 app.route('/api/admin', adminRoutes)
@@ -72,6 +74,9 @@ app.route('/signup', signupRoutes)
 
 // Login Routes (SSR) 
 app.route('/login', loginRoutes)
+
+// Auth verification routes (for email verification pages)
+app.route('/auth', verificationRoutes)
 
 // Redirect /auth/login to /login for compatibility
 app.get('/auth/login', (c) => {
