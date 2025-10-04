@@ -1,5 +1,4 @@
 import { Hono } from 'hono'
-import { randomBytes } from 'crypto'
 
 type Bindings = {
   DB: D1Database;
@@ -29,8 +28,10 @@ verificationRoutes.post('/send-verification', async (c) => {
       return c.json({ message: 'Email is already verified' })
     }
     
-    // Generate verification token
-    const token = randomBytes(32).toString('hex')
+    // Generate verification token using Web Crypto API
+    const tokenArray = new Uint8Array(32)
+    crypto.getRandomValues(tokenArray)
+    const token = Array.from(tokenArray, byte => byte.toString(16).padStart(2, '0')).join('')
     const expiresAt = new Date()
     expiresAt.setHours(expiresAt.getHours() + 24) // 24 hour expiration
     
