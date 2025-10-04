@@ -1077,6 +1077,9 @@ console.log('saveHours function:', typeof window.saveHours)
 
 // Initialize service areas and hours data when on profile management page
 document.addEventListener('DOMContentLoaded', function() {
+  // Initialize search functionality for main page
+  initializeSearchFunctionality()
+  
   // Check if we're on a profile page with management capabilities
   setTimeout(() => {
     if (document.getElementById('serviceAreasList') || document.getElementById('hoursDisplay')) {
@@ -1180,3 +1183,676 @@ function setupFormListeners() {
     }
   }, 2000)
 }
+
+// ===== MAIN PAGE SEARCH FUNCTIONALITY =====
+
+// Canadian provinces and cities data
+const PROVINCES_CITIES = {
+  'AB': {
+    name: 'Alberta',
+    cities: ['Calgary', 'Edmonton', 'Red Deer', 'Lethbridge', 'Medicine Hat', 'Grande Prairie', 'Airdrie', 'Spruce Grove', 'Leduc', 'Lloydminster']
+  },
+  'BC': {
+    name: 'British Columbia', 
+    cities: ['Vancouver', 'Victoria', 'Surrey', 'Burnaby', 'Richmond', 'Abbotsford', 'Coquitlam', 'Kelowna', 'Saanich', 'Langley', 'Delta', 'North Vancouver', 'Kamloops', 'Nanaimo', 'Chilliwack', 'Prince George']
+  },
+  'MB': {
+    name: 'Manitoba',
+    cities: ['Winnipeg', 'Brandon', 'Steinbach', 'Thompson', 'Portage la Prairie', 'Winkler', 'Selkirk', 'Morden', 'Dauphin', 'The Pas']
+  },
+  'NB': {
+    name: 'New Brunswick',
+    cities: ['Saint John', 'Moncton', 'Fredericton', 'Dieppe', 'Riverview', 'Campbellton', 'Edmundston', 'Miramichi', 'Bathurst', 'Sackville']
+  },
+  'NL': {
+    name: 'Newfoundland and Labrador',
+    cities: ['St. John\'s', 'Mount Pearl', 'Corner Brook', 'Conception Bay South', 'Paradise', 'Grand Falls-Windsor', 'Happy Valley-Goose Bay', 'Gander', 'Labrador City', 'Stephenville']
+  },
+  'NS': {
+    name: 'Nova Scotia',
+    cities: ['Halifax', 'Sydney', 'Dartmouth', 'Truro', 'New Glasgow', 'Glace Bay', 'Yarmouth', 'Kentville', 'Amherst', 'New Waterford']
+  },
+  'ON': {
+    name: 'Ontario',
+    cities: ['Toronto', 'Ottawa', 'Mississauga', 'Brampton', 'Hamilton', 'London', 'Markham', 'Vaughan', 'Kitchener', 'Windsor', 'Richmond Hill', 'Oakville', 'Burlington', 'Oshawa', 'Barrie', 'St. Catharines', 'Cambridge', 'Waterloo', 'Guelph', 'Sudbury', 'Kingston', 'Thunder Bay', 'Chatham-Kent', 'Peterborough', 'Kawartha Lakes', 'Prince Edward County', 'Sarnia', 'North Bay', 'Welland', 'Niagara Falls', 'Brantford', 'Belleville', 'Timmins', 'Sault Ste. Marie', 'Woodstock', 'Stratford', 'Leamington', 'Orangeville', 'Orillia', 'Owen Sound', 'Tillsonburg', 'Fort Frances', 'Kenora', 'Dryden', 'Kapuskasing', 'Kirkland Lake', 'Cobourg', 'Collingwood', 'Huntsville', 'Parry Sound', 'Pembroke', 'Petawawa', 'Renfrew', 'Hawkesbury', 'Cornwall']
+  },
+  'PE': {
+    name: 'Prince Edward Island',
+    cities: ['Charlottetown', 'Summerside', 'Stratford', 'Cornwall', 'Montague', 'Kensington', 'Souris', 'Alberton', 'Georgetown', 'Tignish']
+  },
+  'QC': {
+    name: 'Quebec',
+    cities: ['Montreal', 'Quebec City', 'Laval', 'Gatineau', 'Longueuil', 'Sherbrooke', 'Saguenay', 'Lévis', 'Trois-Rivières', 'Terrebonne', 'Saint-Jean-sur-Richelieu', 'Repentigny', 'Boucherville', 'Saint-Jérôme', 'Châteauguay', 'Drummondville', 'Granby', 'Saint-Hyacinthe', 'Shawinigan', 'Dollard-des-Ormeaux', 'Joliette', 'Victoriaville', 'Rimouski', 'Saint-Eustache', 'Saint-Bruno-de-Montarville', 'Mascouche', 'Beloeil', 'Rouyn-Noranda', 'Thetford Mines', 'Magog']
+  },
+  'SK': {
+    name: 'Saskatchewan',
+    cities: ['Saskatoon', 'Regina', 'Prince Albert', 'Moose Jaw', 'Swift Current', 'Yorkton', 'North Battleford', 'Estevan', 'Weyburn', 'Lloydminster', 'Warman', 'Martensville', 'Humboldt', 'Melfort', 'Kindersley', 'Meadow Lake']
+  },
+  'NT': {
+    name: 'Northwest Territories',
+    cities: ['Yellowknife', 'Hay River', 'Inuvik', 'Fort Smith', 'Norman Wells', 'Iqaluit', 'Rankin Inlet', 'Arviat', 'Baker Lake', 'Cambridge Bay']
+  },
+  'NU': {
+    name: 'Nunavut',
+    cities: ['Iqaluit', 'Rankin Inlet', 'Arviat', 'Baker Lake', 'Cambridge Bay', 'Igloolik', 'Pangnirtung', 'Pond Inlet', 'Kugluktuk', 'Cape Dorset']
+  },
+  'YT': {
+    name: 'Yukon',
+    cities: ['Whitehorse', 'Dawson City', 'Watson Lake', 'Haines Junction', 'Mayo', 'Faro', 'Carmacks', 'Pelly Crossing', 'Beaver Creek', 'Old Crow']
+  }
+}
+
+// Service types with additional services
+const SERVICE_TYPES = {
+  'Cleaning Services': {
+    icon: 'fas fa-broom',
+    additional: ['Deep Cleaning', 'Move-in/Move-out Cleaning', 'Post-Construction Cleanup', 'Carpet Cleaning', 'Window Cleaning', 'Pressure Washing', 'Commercial Cleaning', 'Organizing Services']
+  },
+  'Plumbers': {
+    icon: 'fas fa-wrench',
+    additional: ['Drain Cleaning', 'Pipe Repair', 'Water Heater Installation', 'Bathroom Renovations', 'Kitchen Plumbing', 'Emergency Repairs', 'Leak Detection', 'Sewer Line Services']
+  },
+  'Carpenters': {
+    icon: 'fas fa-hammer',
+    additional: ['Custom Furniture', 'Deck Building', 'Kitchen Cabinets', 'Trim Work', 'Flooring Installation', 'Door Installation', 'Window Installation', 'Shelving']
+  },
+  'Electricians': {
+    icon: 'fas fa-bolt',
+    additional: ['Wiring Installation', 'Panel Upgrades', 'Outlet Installation', 'Light Fixtures', 'Ceiling Fans', 'Smart Home Setup', 'Generator Installation', 'Electrical Inspections']
+  },
+  'Flooring': {
+    icon: 'fas fa-th-large',
+    additional: ['Hardwood Installation', 'Laminate Flooring', 'Tile Installation', 'Carpet Installation', 'Vinyl Flooring', 'Floor Refinishing', 'Subfloor Repair', 'Baseboard Installation']
+  },
+  'Painters': {
+    icon: 'fas fa-paint-roller',
+    additional: ['Interior Painting', 'Exterior Painting', 'Wallpaper Removal', 'Deck Staining', 'Drywall Repair', 'Color Consultation', 'Cabinet Painting', 'Touch-up Work']
+  },
+  'Handyman': {
+    icon: 'fas fa-tools',
+    additional: ['General Repairs', 'Furniture Assembly', 'Drywall Repair', 'Light Fixtures', 'Door Repair', 'Caulking', 'Minor Plumbing', 'Minor Electrical']
+  },
+  'HVAC Services': {
+    icon: 'fas fa-thermometer-half',
+    additional: ['Furnace Repair', 'AC Installation', 'Duct Cleaning', 'Thermostat Installation', 'Heat Pump Services', 'Ventilation', 'Air Quality Testing', 'Maintenance Plans']
+  },
+  'General Contractor': {
+    icon: 'fas fa-hard-hat',
+    additional: ['Home Renovations', 'Kitchen Remodeling', 'Bathroom Remodeling', 'Additions', 'Basement Finishing', 'Project Management', 'Permits & Inspections', 'Custom Builds']
+  },
+  'Roofing': {
+    icon: 'fas fa-home',
+    additional: ['Roof Repair', 'Roof Replacement', 'Gutter Installation', 'Gutter Cleaning', 'Leak Repair', 'Roof Inspections', 'Skylight Installation', 'Snow Removal']
+  },
+  'Landscaping': {
+    icon: 'fas fa-leaf',
+    additional: ['Lawn Care', 'Garden Design', 'Tree Trimming', 'Mulching', 'Sod Installation', 'Irrigation Systems', 'Hardscaping', 'Seasonal Cleanup']
+  },
+  'Renovations': {
+    icon: 'fas fa-home',
+    additional: ['Kitchen Renovations', 'Bathroom Renovations', 'Basement Renovations', 'Whole Home Renovations', 'Room Additions', 'Attic Conversions', 'Porch/Deck Additions', 'Accessibility Modifications']
+  }
+}
+
+// Mock data for demonstration (worker counts per location)
+const MOCK_WORKER_COUNTS = {
+  'AB': {
+    'Calgary': 245,
+    'Edmonton': 189,
+    'Red Deer': 45,
+    'Lethbridge': 32,
+    'Medicine Hat': 18,
+    'Grande Prairie': 28,
+    'Airdrie': 23,
+    'Spruce Grove': 15,
+    'Leduc': 12,
+    'Lloydminster': 8
+  },
+  'BC': {
+    'Vancouver': 456,
+    'Victoria': 123,
+    'Surrey': 87,
+    'Burnaby': 76,
+    'Richmond': 65,
+    'Abbotsford': 43,
+    'Coquitlam': 54,
+    'Kelowna': 67,
+    'Saanich': 34,
+    'Langley': 45,
+    'Delta': 32,
+    'North Vancouver': 54,
+    'Kamloops': 34,
+    'Nanaimo': 28,
+    'Chilliwack': 23,
+    'Prince George': 31
+  },
+  'ON': {
+    'Toronto': 892,
+    'Ottawa': 234,
+    'Mississauga': 187,
+    'Brampton': 145,
+    'Hamilton': 134,
+    'London': 98,
+    'Markham': 76,
+    'Vaughan': 65,
+    'Kitchener': 87,
+    'Windsor': 54,
+    'Richmond Hill': 43,
+    'Oakville': 67,
+    'Burlington': 45,
+    'Oshawa': 56,
+    'Barrie': 43,
+    'St. Catharines': 32,
+    'Cambridge': 28,
+    'Waterloo': 34,
+    'Guelph': 45,
+    'Sudbury': 23,
+    'Kingston': 34,
+    'Thunder Bay': 18,
+    'Chatham-Kent': 15,
+    'Peterborough': 21,
+    'Kawartha Lakes': 12,
+    'Prince Edward County': 8,
+    'Sarnia': 18,
+    'North Bay': 15,
+    'Welland': 12,
+    'Niagara Falls': 23,
+    'Brantford': 18,
+    'Belleville': 15,
+    'Timmins': 8,
+    'Sault Ste. Marie': 12,
+    'Woodstock': 9,
+    'Stratford': 7,
+    'Leamington': 8,
+    'Orangeville': 12,
+    'Orillia': 10,
+    'Owen Sound': 8,
+    'Tillsonburg': 6,
+    'Fort Frances': 4,
+    'Kenora': 5,
+    'Dryden': 3,
+    'Kapuskasing': 3,
+    'Kirkland Lake': 4,
+    'Cobourg': 7,
+    'Collingwood': 9,
+    'Huntsville': 8,
+    'Parry Sound': 6,
+    'Pembroke': 7,
+    'Petawawa': 5,
+    'Renfrew': 6,
+    'Hawkesbury': 5,
+    'Cornwall': 12
+  },
+  'QC': {
+    'Montreal': 567,
+    'Quebec City': 156,
+    'Laval': 89,
+    'Gatineau': 67,
+    'Longueuil': 78,
+    'Sherbrooke': 45,
+    'Saguenay': 32,
+    'Lévis': 28,
+    'Trois-Rivières': 34,
+    'Terrebonne': 23,
+    'Saint-Jean-sur-Richelieu': 18,
+    'Repentigny': 15,
+    'Boucherville': 12,
+    'Saint-Jérôme': 18,
+    'Châteauguay': 15,
+    'Drummondville': 12,
+    'Granby': 10,
+    'Saint-Hyacinthe': 9,
+    'Shawinigan': 8,
+    'Dollard-des-Ormeaux': 12,
+    'Joliette': 8,
+    'Victoriaville': 7,
+    'Rimouski': 9,
+    'Saint-Eustache': 10,
+    'Saint-Bruno-de-Montarville': 8,
+    'Mascouche': 7,
+    'Beloeil': 6,
+    'Rouyn-Noranda': 5,
+    'Thetford Mines': 4,
+    'Magog': 6
+  },
+  // Other provinces with smaller numbers
+  'MB': {
+    'Winnipeg': 134,
+    'Brandon': 23,
+    'Steinbach': 12,
+    'Thompson': 8,
+    'Portage la Prairie': 6,
+    'Winkler': 5,
+    'Selkirk': 4,
+    'Morden': 4,
+    'Dauphin': 3,
+    'The Pas': 2
+  },
+  'SK': {
+    'Saskatoon': 89,
+    'Regina': 78,
+    'Prince Albert': 15,
+    'Moose Jaw': 12,
+    'Swift Current': 8,
+    'Yorkton': 6,
+    'North Battleford': 5,
+    'Estevan': 4,
+    'Weyburn': 4,
+    'Lloydminster': 3,
+    'Warman': 3,
+    'Martensville': 2,
+    'Humboldt': 2,
+    'Melfort': 2,
+    'Kindersley': 2,
+    'Meadow Lake': 2
+  },
+  'NS': {
+    'Halifax': 98,
+    'Sydney': 18,
+    'Dartmouth': 15,
+    'Truro': 8,
+    'New Glasgow': 5,
+    'Glace Bay': 4,
+    'Yarmouth': 3,
+    'Kentville': 3,
+    'Amherst': 2,
+    'New Waterford': 2
+  },
+  'NB': {
+    'Saint John': 45,
+    'Moncton': 43,
+    'Fredericton': 32,
+    'Dieppe': 8,
+    'Riverview': 6,
+    'Campbellton': 3,
+    'Edmundston': 4,
+    'Miramichi': 3,
+    'Bathurst': 3,
+    'Sackville': 2
+  },
+  'NL': {
+    'St. John\'s': 56,
+    'Mount Pearl': 8,
+    'Corner Brook': 12,
+    'Conception Bay South': 6,
+    'Paradise': 4,
+    'Grand Falls-Windsor': 3,
+    'Happy Valley-Goose Bay': 2,
+    'Gander': 2,
+    'Labrador City': 2,
+    'Stephenville': 2
+  },
+  'PE': {
+    'Charlottetown': 23,
+    'Summerside': 8,
+    'Stratford': 3,
+    'Cornwall': 2,
+    'Montague': 1,
+    'Kensington': 1,
+    'Souris': 1,
+    'Alberton': 1,
+    'Georgetown': 1,
+    'Tignish': 1
+  },
+  'YT': {
+    'Whitehorse': 12,
+    'Dawson City': 2,
+    'Watson Lake': 1,
+    'Haines Junction': 1,
+    'Mayo': 1,
+    'Faro': 1,
+    'Carmacks': 1,
+    'Pelly Crossing': 1,
+    'Beaver Creek': 1,
+    'Old Crow': 1
+  },
+  'NT': {
+    'Yellowknife': 15,
+    'Hay River': 3,
+    'Inuvik': 2,
+    'Fort Smith': 1,
+    'Norman Wells': 1,
+    'Iqaluit': 1,
+    'Rankin Inlet': 1,
+    'Arviat': 1,
+    'Baker Lake': 1,
+    'Cambridge Bay': 1
+  },
+  'NU': {
+    'Iqaluit': 8,
+    'Rankin Inlet': 2,
+    'Arviat': 1,
+    'Baker Lake': 1,
+    'Cambridge Bay': 1,
+    'Igloolik': 1,
+    'Pangnirtung': 1,
+    'Pond Inlet': 1,
+    'Kugluktuk': 1,
+    'Cape Dorset': 1
+  }
+}
+
+// Initialize search functionality
+function initializeSearchFunctionality() {
+  // Check if we're on the main page with search functionality
+  if (document.getElementById('provinceMain') && document.getElementById('cityMain')) {
+    console.log('Main search functionality initializing...')
+    
+    // Populate provinces dropdown
+    populateProvinces()
+    
+    // Populate additional services
+    populateAdditionalServices('Cleaning Services') // Default
+    
+    // Set up budget slider
+    setupBudgetSlider()
+    
+    // Set up popular tasks
+    setupPopularTasks()
+    
+    // Set up find providers button
+    setupFindProvidersButton()
+    
+    console.log('Main search functionality initialized')
+  }
+}
+
+// Populate provinces dropdown with counts
+function populateProvinces() {
+  const provinceSelect = document.getElementById('provinceMain')
+  if (!provinceSelect) return
+  
+  console.log('Populating provinces dropdown')
+  
+  // Calculate total workers per province
+  const provinceCounts = {}
+  Object.keys(PROVINCES_CITIES).forEach(code => {
+    const cities = MOCK_WORKER_COUNTS[code] || {}
+    const totalWorkers = Object.values(cities).reduce((sum, count) => sum + count, 0)
+    provinceCounts[code] = totalWorkers
+  })
+  
+  // Clear existing options except the first one
+  provinceSelect.innerHTML = '<option value="">All Provinces</option>'
+  
+  // Add province options with counts, sorted by worker count
+  Object.entries(provinceCounts)
+    .sort((a, b) => b[1] - a[1]) // Sort by worker count descending
+    .forEach(([code, count]) => {
+      const province = PROVINCES_CITIES[code]
+      if (province && count > 0) {
+        const option = document.createElement('option')
+        option.value = code
+        option.textContent = `${province.name} (${count})`
+        provinceSelect.appendChild(option)
+      }
+    })
+  
+  console.log('Provinces populated with counts:', provinceCounts)
+}
+
+// Handle province change and populate cities
+function onProvinceChange(provinceCode) {
+  const citySelect = document.getElementById('cityMain')
+  if (!citySelect) return
+  
+  console.log('Province changed to:', provinceCode)
+  
+  if (!provinceCode) {
+    citySelect.innerHTML = '<option value="">Select Province First</option>'
+    citySelect.disabled = true
+    return
+  }
+  
+  const province = PROVINCES_CITIES[provinceCode]
+  const cityCounts = MOCK_WORKER_COUNTS[provinceCode] || {}
+  
+  if (!province) {
+    citySelect.innerHTML = '<option value="">No cities available</option>'
+    citySelect.disabled = true
+    return
+  }
+  
+  // Clear and populate cities
+  citySelect.innerHTML = '<option value="">All Cities</option>'
+  
+  // Sort cities by worker count
+  const sortedCities = province.cities
+    .filter(city => cityCounts[city] > 0)
+    .sort((a, b) => (cityCounts[b] || 0) - (cityCounts[a] || 0))
+  
+  sortedCities.forEach(city => {
+    const count = cityCounts[city] || 0
+    if (count > 0) {
+      const option = document.createElement('option')
+      option.value = city
+      option.textContent = `${city} (${count})`
+      citySelect.appendChild(option)
+    }
+  })
+  
+  citySelect.disabled = false
+  console.log('Cities populated for', province.name, ':', sortedCities.length, 'cities')
+}
+
+// Handle service type change and update additional services
+function onServiceTypeChange(serviceType) {
+  console.log('Service type changed to:', serviceType)
+  populateAdditionalServices(serviceType)
+  updatePopularTasks(serviceType)
+}
+
+// Populate additional services based on selected service type
+function populateAdditionalServices(serviceType) {
+  const container = document.getElementById('additionalServicesContainer')
+  const otherField = document.getElementById('otherServiceField')
+  
+  if (!container) return
+  
+  const serviceData = SERVICE_TYPES[serviceType]
+  if (!serviceData) return
+  
+  console.log('Populating additional services for:', serviceType)
+  
+  // Clear container
+  container.innerHTML = ''
+  
+  // Add service options as checkboxes
+  serviceData.additional.forEach((service, index) => {
+    const checkbox = document.createElement('div')
+    checkbox.className = 'flex items-center'
+    checkbox.innerHTML = `
+      <input type="checkbox" id="service_${index}" name="additional_services" value="${service}"
+             class="w-4 h-4 text-kwikr-green bg-gray-100 border-gray-300 rounded focus:ring-kwikr-green focus:ring-2">
+      <label for="service_${index}" class="ml-2 text-sm font-medium text-gray-700">${service}</label>
+    `
+    container.appendChild(checkbox)
+  })
+  
+  // Add "Other" option
+  const otherCheckbox = document.createElement('div')
+  otherCheckbox.className = 'flex items-center'
+  otherCheckbox.innerHTML = `
+    <input type="checkbox" id="service_other" name="additional_services" value="other"
+           class="w-4 h-4 text-kwikr-green bg-gray-100 border-gray-300 rounded focus:ring-kwikr-green focus:ring-2"
+           onchange="toggleOtherServiceField(this.checked)">
+    <label for="service_other" class="ml-2 text-sm font-medium text-gray-700">Other (please specify)</label>
+  `
+  container.appendChild(otherCheckbox)
+}
+
+// Toggle other service field visibility
+function toggleOtherServiceField(show) {
+  const otherField = document.getElementById('otherServiceField')
+  const otherInput = document.getElementById('otherServiceText')
+  
+  if (otherField) {
+    if (show) {
+      otherField.classList.remove('hidden')
+      if (otherInput) otherInput.focus()
+    } else {
+      otherField.classList.add('hidden')
+      if (otherInput) otherInput.value = ''
+    }
+  }
+}
+
+// Setup budget slider functionality
+function setupBudgetSlider() {
+  const budgetRange = document.getElementById('budgetRange')
+  const budgetDisplay = document.getElementById('budgetDisplay')
+  
+  if (!budgetRange || !budgetDisplay) return
+  
+  console.log('Setting up budget slider')
+  
+  // Update display when slider moves
+  budgetRange.addEventListener('input', function() {
+    const value = parseInt(this.value)
+    budgetDisplay.textContent = `Budget: $${value}`
+    
+    // Update slider background gradient
+    const percentage = ((value - this.min) / (this.max - this.min)) * 100
+    this.style.background = `linear-gradient(to right, #00C881 0%, #00C881 ${percentage}%, #e5e7eb ${percentage}%, #e5e7eb 100%)`
+  })
+  
+  // Initialize display
+  const initialValue = parseInt(budgetRange.value)
+  budgetDisplay.textContent = `Budget: $${initialValue}`
+  
+  // Initialize slider background
+  const initialPercentage = ((initialValue - budgetRange.min) / (budgetRange.max - budgetRange.min)) * 100
+  budgetRange.style.background = `linear-gradient(to right, #00C881 0%, #00C881 ${initialPercentage}%, #e5e7eb ${initialPercentage}%, #e5e7eb 100%)`
+}
+
+// Setup popular tasks functionality  
+function setupPopularTasks() {
+  const popularTaskButtons = document.querySelectorAll('.popular-task')
+  
+  popularTaskButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const taskText = this.textContent.trim()
+      console.log('Popular task clicked:', taskText)
+      
+      // You could auto-fill a task description field here
+      // For now, just highlight the button briefly
+      this.classList.add('bg-opacity-40')
+      setTimeout(() => {
+        this.classList.remove('bg-opacity-40')
+      }, 200)
+    })
+  })
+}
+
+// Update popular tasks based on service type
+function updatePopularTasks(serviceType) {
+  const popularTasksContainer = document.querySelector('.popular-tasks-container')
+  if (!popularTasksContainer) return
+  
+  console.log('Updating popular tasks for:', serviceType)
+  
+  // Popular tasks for different service types
+  const popularTasks = {
+    'Cleaning Services': ['clean my house', 'deep clean my kitchen', 'clean my office space', 'do a move-out cleaning', 'clean my windows'],
+    'Plumbers': ['fix my leaky faucet', 'unclog my drain', 'install water heater', 'repair toilet', 'fix pipe leak'],
+    'Carpenters': ['build custom shelves', 'install kitchen cabinets', 'repair deck', 'build furniture', 'install trim work'],
+    'Electricians': ['install light fixtures', 'upgrade electrical panel', 'add new outlets', 'fix electrical issues', 'install ceiling fan'],
+    'Flooring': ['install hardwood floors', 'replace carpet', 'tile installation', 'floor refinishing', 'repair subfloor'],
+    'Painters': ['paint interior walls', 'paint exterior house', 'remove wallpaper', 'stain my deck', 'paint kitchen cabinets'],
+    'Handyman': ['fix drywall holes', 'assemble furniture', 'repair doors', 'install shelving', 'general maintenance'],
+    'HVAC Services': ['repair furnace', 'install air conditioner', 'clean ducts', 'fix thermostat', 'maintenance checkup'],
+    'General Contractor': ['kitchen renovation', 'bathroom remodel', 'basement finishing', 'room addition', 'whole home renovation'],
+    'Roofing': ['repair roof leak', 'replace shingles', 'clean gutters', 'roof inspection', 'install skylight'],
+    'Landscaping': ['lawn maintenance', 'garden design', 'tree trimming', 'install irrigation', 'seasonal cleanup'],
+    'Renovations': ['renovate kitchen', 'remodel bathroom', 'finish basement', 'update living room', 'modernize home']
+  }
+  
+  const tasks = popularTasks[serviceType] || popularTasks['Cleaning Services']
+  
+  // Update the popular tasks display
+  const tasksHtml = tasks.map(task => 
+    `<button class="bg-white bg-opacity-20 text-white px-6 py-3 rounded-full hover:bg-opacity-30 transition-all duration-300 popular-task">
+      ${task}
+    </button>`
+  ).join('')
+  
+  const popularTasksDiv = popularTasksContainer.querySelector('.flex.flex-wrap')
+  if (popularTasksDiv) {
+    popularTasksDiv.innerHTML = tasksHtml
+    setupPopularTasks() // Re-setup event listeners
+  }
+}
+
+// Setup find providers button
+function setupFindProvidersButton() {
+  const findButton = document.getElementById('findProvidersBtn')
+  if (!findButton) return
+  
+  console.log('Setting up find providers button')
+  
+  findButton.addEventListener('click', function() {
+    handleFindProviders()
+  })
+}
+
+// Handle find providers action
+function handleFindProviders() {
+  console.log('Find providers clicked')
+  
+  // Collect search parameters
+  const serviceType = document.getElementById('serviceTypeMain')?.value || 'Cleaning Services'
+  const province = document.getElementById('provinceMain')?.value || ''
+  const city = document.getElementById('cityMain')?.value || ''
+  const budget = document.getElementById('budgetRange')?.value || '5000'
+  
+  // Collect additional services
+  const additionalServices = []
+  const serviceCheckboxes = document.querySelectorAll('input[name="additional_services"]:checked')
+  serviceCheckboxes.forEach(checkbox => {
+    if (checkbox.value === 'other') {
+      const otherText = document.getElementById('otherServiceText')?.value?.trim()
+      if (otherText) additionalServices.push(otherText)
+    } else {
+      additionalServices.push(checkbox.value)
+    }
+  })
+  
+  console.log('Search parameters:', {
+    serviceType,
+    province,
+    city,
+    budget,
+    additionalServices
+  })
+  
+  // Build search URL
+  const params = new URLSearchParams()
+  params.append('service', serviceType)
+  if (province) params.append('province', province)
+  if (city) params.append('city', city)
+  params.append('budget', budget)
+  if (additionalServices.length > 0) {
+    params.append('additional', additionalServices.join(','))
+  }
+  
+  // Navigate to worker browser page with search parameters
+  const searchUrl = `/dashboard/client/workers?${params.toString()}`
+  console.log('Navigating to:', searchUrl)
+  
+  // Show loading state briefly
+  const originalText = this.innerHTML
+  this.innerHTML = '<i class="fas fa-spinner fa-spin mr-3"></i>Searching...'
+  this.disabled = true
+  
+  setTimeout(() => {
+    window.location.href = searchUrl
+  }, 500)
+}
+
+// Export search functions to global scope
+window.onProvinceChange = onProvinceChange
+window.onServiceTypeChange = onServiceTypeChange
+window.toggleOtherServiceField = toggleOtherServiceField
+window.handleFindProviders = handleFindProviders
+
+console.log('Search functionality loaded and exported to global scope')
