@@ -1294,7 +1294,14 @@ const SERVICE_TYPES = {
   }
 }
 
-// Mock data for demonstration (worker counts per location)
+// Real worker data loaded from API
+let REAL_WORKER_DATA = {
+  provinces: [],
+  cities: {},
+  services: {}
+}
+
+// Mock data for demonstration (worker counts per location) - REPLACED WITH REAL API DATA
 const MOCK_WORKER_COUNTS = {
   'AB': {
     'Calgary': 245,
@@ -1557,41 +1564,84 @@ function initializeSearchFunctionality() {
   }
 }
 
-// Populate provinces dropdown with counts
-function populateProvinces() {
+// Populate provinces dropdown with REAL counts from API
+async function populateProvinces() {
   const provinceSelect = document.getElementById('provinceMain')
   if (!provinceSelect) return
   
-  console.log('Populating provinces dropdown')
+  console.log('Loading real province data from API...')
   
-  // Calculate total workers per province
-  const provinceCounts = {}
-  Object.keys(PROVINCES_CITIES).forEach(code => {
-    const cities = MOCK_WORKER_COUNTS[code] || {}
-    const totalWorkers = Object.values(cities).reduce((sum, count) => sum + count, 0)
-    provinceCounts[code] = totalWorkers
-  })
-  
-  // Clear existing options except the first one
-  provinceSelect.innerHTML = '<option value="">All Provinces</option>'
-  
-  // Add province options with counts, sorted by worker count
-  Object.entries(provinceCounts)
-    .sort((a, b) => b[1] - a[1]) // Sort by worker count descending
-    .forEach(([code, count]) => {
-      const province = PROVINCES_CITIES[code]
-      if (province && count > 0) {
-        const option = document.createElement('option')
-        option.value = code
-        option.textContent = `${province.name} (${count})`
-        provinceSelect.appendChild(option)
-      }
+  try {
+    // Load real statistics from API
+    const response = await fetch('/api/client/search/stats')
+    const data = await response.json()
+    
+    if (data.provinces && data.cities) {
+      REAL_WORKER_DATA.provinces = data.provinces
+      
+      // Group cities by province
+      REAL_WORKER_DATA.cities = {}
+      data.cities.forEach(city => {
+        if (!REAL_WORKER_DATA.cities[city.province]) {
+          REAL_WORKER_DATA.cities[city.province] = {}
+        }
+        REAL_WORKER_DATA.cities[city.province][city.city] = city.worker_count
+      })
+      
+      console.log('Real worker data loaded:', REAL_WORKER_DATA)
+      
+      // Clear existing options except the first one
+      provinceSelect.innerHTML = '<option value="">All Provinces</option>'
+      
+      // Add province options with REAL counts, sorted by worker count
+      REAL_WORKER_DATA.provinces
+        .sort((a, b) => b.worker_count - a.worker_count)
+        .forEach(province => {
+          if (province.worker_count > 0) {
+            const provinceName = PROVINCES_CITIES[province.province]?.name || province.province
+            const option = document.createElement('option')
+            option.value = province.province
+            option.textContent = `${provinceName} (${province.worker_count})`
+            provinceSelect.appendChild(option)
+          }
+        })
+      
+      console.log('Provinces populated with REAL counts from database')
+    } else {
+      throw new Error('Invalid API response')
+    }
+  } catch (error) {
+    console.error('Failed to load real province data, using fallback:', error)
+    
+    // Fallback to static data if API fails
+    const provinceCounts = {}
+    Object.keys(PROVINCES_CITIES).forEach(code => {
+      const cities = MOCK_WORKER_COUNTS[code] || {}
+      const totalWorkers = Object.values(cities).reduce((sum, count) => sum + count, 0)
+      provinceCounts[code] = totalWorkers
     })
-  
-  console.log('Provinces populated with counts:', provinceCounts)
+    
+    // Clear existing options except the first one
+    provinceSelect.innerHTML = '<option value="">All Provinces</option>'
+    
+    // Add province options with counts, sorted by worker count
+    Object.entries(provinceCounts)
+      .sort((a, b) => b[1] - a[1]) // Sort by worker count descending
+      .forEach(([code, count]) => {
+        const province = PROVINCES_CITIES[code]
+        if (province && count > 0) {
+          const option = document.createElement('option')
+          option.value = code
+          option.textContent = `${province.name} (${count})`
+          provinceSelect.appendChild(option)
+        }
+      })
+    
+    console.log('Fallback provinces populated')
+  }
 }
 
-// Handle province change and populate cities
+// Handle province change and populate cities with REAL data
 function onProvinceChange(provinceCode) {
   const citySelect = document.getElementById('cityMain')
   if (!citySelect) return
@@ -1604,8 +1654,12 @@ function onProvinceChange(provinceCode) {
     return
   }
   
+  // Use real city data if available, otherwise fallback to static data
+  const realCityCounts = REAL_WORKER_DATA.cities[provinceCode] || {}
+  const fallbackCityCounts = MOCK_WORKER_COUNTS[provinceCode] || {}
+  const cityCounts = Object.keys(realCityCounts).length > 0 ? realCityCounts : fallbackCityCounts
+  
   const province = PROVINCES_CITIES[provinceCode]
-  const cityCounts = MOCK_WORKER_COUNTS[provinceCode] || {}
   
   if (!province) {
     citySelect.innerHTML = '<option value="">No cities available</option>'
@@ -1616,23 +1670,36 @@ function onProvinceChange(provinceCode) {
   // Clear and populate cities
   citySelect.innerHTML = '<option value="">All Cities</option>'
   
-  // Sort cities by worker count
-  const sortedCities = province.cities
-    .filter(city => cityCounts[city] > 0)
-    .sort((a, b) => (cityCounts[b] || 0) - (cityCounts[a] || 0))
+  // Get cities with worker counts - use real data if available
+  let citiesWithCounts = []
   
-  sortedCities.forEach(city => {
-    const count = cityCounts[city] || 0
-    if (count > 0) {
-      const option = document.createElement('option')
-      option.value = city
-      option.textContent = `${city} (${count})`
-      citySelect.appendChild(option)
-    }
+  if (Object.keys(realCityCounts).length > 0) {
+    // Use real API data
+    citiesWithCounts = Object.entries(realCityCounts)
+      .map(([city, count]) => ({ city, count }))
+      .filter(item => item.count > 0)
+      .sort((a, b) => b.count - a.count)
+    
+    console.log(`Using REAL city data for ${province.name}:`, citiesWithCounts)
+  } else {
+    // Fallback to static data
+    citiesWithCounts = province.cities
+      .filter(city => cityCounts[city] > 0)
+      .map(city => ({ city, count: cityCounts[city] }))
+      .sort((a, b) => b.count - a.count)
+    
+    console.log(`Using fallback city data for ${province.name}:`, citiesWithCounts)
+  }
+  
+  citiesWithCounts.forEach(({ city, count }) => {
+    const option = document.createElement('option')
+    option.value = city
+    option.textContent = `${city} (${count})`
+    citySelect.appendChild(option)
   })
   
   citySelect.disabled = false
-  console.log('Cities populated for', province.name, ':', sortedCities.length, 'cities')
+  console.log('Cities populated for', province.name, ':', citiesWithCounts.length, 'cities')
 }
 
 // Handle service type change and update additional services

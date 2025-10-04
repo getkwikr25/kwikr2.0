@@ -352,6 +352,48 @@ clientRoutes.get('/workers/search', async (c) => {
   }
 })
 
+// Get search statistics (province and city counts)
+clientRoutes.get('/search/stats', async (c) => {
+  try {
+    // Get worker counts by province
+    const provinceStats = await c.env.DB.prepare(`
+      SELECT province, COUNT(*) as worker_count
+      FROM users 
+      WHERE role = 'worker' AND is_active = 1 
+      GROUP BY province 
+      ORDER BY worker_count DESC
+    `).all()
+
+    // Get worker counts by city for all provinces
+    const cityStats = await c.env.DB.prepare(`
+      SELECT province, city, COUNT(*) as worker_count
+      FROM users 
+      WHERE role = 'worker' AND is_active = 1 AND city IS NOT NULL
+      GROUP BY province, city 
+      ORDER BY province, worker_count DESC
+    `).all()
+
+    // Get service type counts by province
+    const serviceStats = await c.env.DB.prepare(`
+      SELECT u.province, ws.service_category, COUNT(*) as worker_count
+      FROM users u
+      JOIN worker_services ws ON u.id = ws.user_id
+      WHERE u.role = 'worker' AND u.is_active = 1 AND ws.is_available = 1
+      GROUP BY u.province, ws.service_category
+      ORDER BY u.province, worker_count DESC
+    `).all()
+
+    return c.json({
+      provinces: provinceStats.results || [],
+      cities: cityStats.results || [],
+      services: serviceStats.results || []
+    })
+  } catch (error) {
+    console.error('Search stats error:', error)
+    return c.json({ error: 'Failed to get search statistics' }, 500)
+  }
+})
+
 // Get worker profile
 clientRoutes.get('/workers/:id', async (c) => {
   try {
