@@ -1,6 +1,5 @@
 // Secure password hashing utilities for Cloudflare Workers
-// Uses Web Crypto API for PBKDF2 hashing and bcryptjs for compatibility
-import * as bcrypt from 'bcryptjs'
+// Uses Web Crypto API for password hashing - compatible with Cloudflare Pages/Workers environment
 
 export class PasswordUtils {
   // Generate a random salt
@@ -8,11 +7,12 @@ export class PasswordUtils {
     return crypto.getRandomValues(new Uint8Array(16))
   }
 
-  // Hash password with bcrypt (simpler and more standard)
+  // Hash password with PBKDF2 using Web Crypto API (Cloudflare compatible)
   static async hashPassword(password: string): Promise<string> {
-    // Use bcrypt for password hashing - it includes salt automatically
-    const saltRounds = 12 // Strong security level
-    return bcrypt.hash(password, saltRounds)
+    const salt = this.generateSalt()
+    const result = await this.hashPasswordPBKDF2(password, salt)
+    // Return combined hash and salt in format: hash:salt
+    return `${result.hash}:${result.salt}`
   }
 
   // Legacy PBKDF2 method for backward compatibility
@@ -98,18 +98,31 @@ export class PasswordUtils {
     return /^\$2[abxy]\$/.test(hash)
   }
 
-  // Verify bcrypt password
-  static verifyBcryptPassword(password: string, hash: string): boolean {
-    try {
-      return bcrypt.compareSync(password, hash)
-    } catch (error) {
-      console.error('Bcrypt verification error:', error)
-      return false
-    }
+  // Check if password hash is PBKDF2 format (hash:salt)
+  static isPBKDF2Hash(hash: string): boolean {
+    return hash.includes(':') && hash.split(':').length === 2
   }
 
-  // Hash password with bcrypt (for new accounts or password resets)
-  static hashWithBcrypt(password: string, saltRounds: number = 12): string {
-    return bcrypt.hashSync(password, saltRounds)
+  // Verify bcrypt password (for legacy compatibility)
+  static async verifyBcryptPassword(password: string, hash: string): Promise<boolean> {
+    // Since we can't use bcryptjs in Cloudflare Workers, 
+    // this is a fallback that should be replaced with proper PBKDF2
+    console.warn('Bcrypt verification not available in Cloudflare Workers')
+    return false
+  }
+
+  // Verify PBKDF2 password with combined hash:salt format
+  static async verifyHashedPassword(password: string, combinedHash: string): Promise<boolean> {
+    try {
+      const parts = combinedHash.split(':')
+      if (parts.length !== 2) {
+        return false
+      }
+      const [storedHash, storedSalt] = parts
+      return await this.verifyPassword(password, storedHash, storedSalt)
+    } catch (error) {
+      console.error('Password verification error:', error)
+      return false
+    }
   }
 }

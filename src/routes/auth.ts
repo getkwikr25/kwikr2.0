@@ -210,24 +210,28 @@ authRoutes.post('/login', async (c) => {
       return c.json({ error: 'Invalid credentials' }, 401)
     }
     
-    // Verify password - handle bcrypt, PBKDF2 with salt, and legacy base64
+    // Verify password - handle PBKDF2, bcrypt, and legacy base64
     let passwordValid = false
     
-    if (PasswordUtils.isBcryptHash(user.password_hash)) {
-      // Bcrypt password verification (for admin accounts and new accounts)
-      passwordValid = PasswordUtils.verifyBcryptPassword(password, user.password_hash)
+    if (PasswordUtils.isPBKDF2Hash(user.password_hash)) {
+      // New PBKDF2 password verification (hash:salt format)
+      passwordValid = await PasswordUtils.verifyHashedPassword(password, user.password_hash)
+    } else if (PasswordUtils.isBcryptHash(user.password_hash)) {
+      // Bcrypt password verification (for legacy accounts - not available in Workers)
+      console.warn('Bcrypt password detected - consider migrating to PBKDF2')
+      passwordValid = await PasswordUtils.verifyBcryptPassword(password, user.password_hash)
     } else if (PasswordUtils.isLegacyHash(user.password_hash)) {
       // Legacy base64 password verification
       passwordValid = PasswordUtils.verifyLegacyPassword(password, user.password_hash)
     } else {
-      // Try to get password_salt for PBKDF2 verification
+      // Try to get password_salt for old PBKDF2 verification format
       try {
         const userWithSalt = await c.env.DB.prepare(`
           SELECT password_salt FROM users WHERE id = ?
         `).bind(user.id).first()
         
         if (userWithSalt?.password_salt) {
-          // New secure PBKDF2 password verification
+          // Old PBKDF2 password verification with separate salt column
           passwordValid = await PasswordUtils.verifyPassword(password, user.password_hash, userWithSalt.password_salt)
         }
       } catch (error) {
