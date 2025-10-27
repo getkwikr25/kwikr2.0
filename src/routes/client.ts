@@ -352,30 +352,63 @@ clientRoutes.get('/workers/search', async (c) => {
   }
 })
 
-// Get search statistics (province and city counts)
+// Get search statistics (province and city counts) with optional service filtering
 clientRoutes.get('/search/stats', async (c) => {
   try {
-    // Get worker counts by province
-    const provinceStats = await c.env.DB.prepare(`
-      SELECT province, COUNT(*) as worker_count
-      FROM users 
-      WHERE role = 'worker' AND is_active = 1 
-      GROUP BY province 
-      ORDER BY worker_count DESC
-    `).all()
+    const serviceCategory = c.req.query('service_category') // Optional service filter
+    
+    let provinceQuery, cityQuery, serviceQuery
+    let params = []
+    
+    if (serviceCategory) {
+      // Filter by specific service category
+      provinceQuery = `
+        SELECT u.province, COUNT(DISTINCT u.id) as worker_count
+        FROM users u
+        JOIN worker_services ws ON u.id = ws.user_id
+        WHERE u.role = 'worker' AND u.is_active = 1 AND ws.is_available = 1 
+        AND ws.service_category = ?
+        GROUP BY u.province 
+        ORDER BY worker_count DESC
+      `
+      
+      cityQuery = `
+        SELECT u.province, u.city, COUNT(DISTINCT u.id) as worker_count
+        FROM users u
+        JOIN worker_services ws ON u.id = ws.user_id
+        WHERE u.role = 'worker' AND u.is_active = 1 AND ws.is_available = 1 
+        AND u.city IS NOT NULL AND ws.service_category = ?
+        GROUP BY u.province, u.city 
+        ORDER BY u.province, worker_count DESC
+      `
+      
+      params = [serviceCategory, serviceCategory]
+    } else {
+      // Get all workers (no service filter)
+      provinceQuery = `
+        SELECT province, COUNT(*) as worker_count
+        FROM users 
+        WHERE role = 'worker' AND is_active = 1 
+        GROUP BY province 
+        ORDER BY worker_count DESC
+      `
+      
+      cityQuery = `
+        SELECT province, city, COUNT(*) as worker_count
+        FROM users 
+        WHERE role = 'worker' AND is_active = 1 AND city IS NOT NULL
+        GROUP BY province, city 
+        ORDER BY province, worker_count DESC
+      `
+    }
 
-    // Get worker counts by city for all provinces
-    const cityStats = await c.env.DB.prepare(`
-      SELECT province, city, COUNT(*) as worker_count
-      FROM users 
-      WHERE role = 'worker' AND is_active = 1 AND city IS NOT NULL
-      GROUP BY province, city 
-      ORDER BY province, worker_count DESC
-    `).all()
+    // Execute queries
+    const provinceStats = await c.env.DB.prepare(provinceQuery).bind(...(serviceCategory ? [serviceCategory] : [])).all()
+    const cityStats = await c.env.DB.prepare(cityQuery).bind(...(serviceCategory ? [serviceCategory] : [])).all()
 
-    // Get service type counts by province
+    // Get service type counts by province (always show all services)
     const serviceStats = await c.env.DB.prepare(`
-      SELECT u.province, ws.service_category, COUNT(*) as worker_count
+      SELECT u.province, ws.service_category, COUNT(DISTINCT u.id) as worker_count
       FROM users u
       JOIN worker_services ws ON u.id = ws.user_id
       WHERE u.role = 'worker' AND u.is_active = 1 AND ws.is_available = 1

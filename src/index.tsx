@@ -1150,7 +1150,7 @@ app.post('/api/providers/search', async (c) => {
     let searchQuery = `
       SELECT DISTINCT
         u.id, u.first_name, u.last_name, u.email, u.phone, u.city, u.province, u.is_verified,
-        p.bio, p.profile_image_url, p.company_description,
+        p.bio, p.profile_image_url,
         AVG(ws.hourly_rate) as avg_rate,
         COUNT(ws.id) as service_count,
         GROUP_CONCAT(ws.service_name) as services_list,
@@ -1227,7 +1227,7 @@ app.post('/api/providers/search', async (c) => {
     
     searchQuery += `
       GROUP BY u.id, u.first_name, u.last_name, u.email, u.phone, u.city, u.province, u.is_verified,
-               p.bio, p.profile_image_url, p.company_description
+               p.bio, p.profile_image_url
       ORDER BY u.is_verified DESC, avg_rate ASC
     `
     
@@ -1261,7 +1261,7 @@ app.post('/api/providers/search', async (c) => {
         initials: initials.toUpperCase(),
         verified: worker.is_verified === 1,
         available: null, // No fake availability - use actual availability when implemented
-        bio: truncateDescription(worker.company_description || worker.bio || worker.primary_description, 400), // Truncate to 400 characters for search results
+        bio: truncateDescription(worker.bio || worker.primary_description, 400), // Truncate to 400 characters for search results
         location: `${worker.city || ''}, ${worker.province || ''}`.replace(', ,', '').trim() || null,
         phone: worker.phone,
         email: worker.email
@@ -1364,7 +1364,7 @@ app.get('/search', async (c) => {
     let searchQuery = `
       SELECT DISTINCT
         u.id, u.first_name, u.last_name, u.email, u.phone, u.city, u.province, u.is_verified,
-        p.bio, p.profile_image_url, p.company_description,
+        p.bio, p.profile_image_url,
         AVG(ws.hourly_rate) as avg_rate,
         COUNT(ws.id) as service_count,
         GROUP_CONCAT(ws.service_name) as services_list,
@@ -1441,7 +1441,7 @@ app.get('/search', async (c) => {
     
     searchQuery += `
       GROUP BY u.id, u.first_name, u.last_name, u.email, u.phone, u.city, u.province, u.is_verified,
-               p.bio, p.profile_image_url, p.company_description
+               p.bio, p.profile_image_url
       ORDER BY u.is_verified DESC, avg_rate ASC
     `
     
@@ -1473,7 +1473,7 @@ app.get('/search', async (c) => {
         experience: null, // Use actual experience when available from database
         location: `${worker.city || ''}, ${worker.province || ''}`.replace(', ,', '').trim() || null,
         phone: worker.phone,
-        description: truncateDescription(worker.company_description || worker.bio || worker.primary_description, 400), // Truncate to 400 characters for search results
+        description: truncateDescription(worker.bio || worker.primary_description, 400), // Truncate to 400 characters for search results
         services: servicesList.length > 0 ? servicesList : ['General Services'],
         profileUrl: `/universal-profile/${worker.id}`,
         image: worker.profile_image_url || null, // Use actual profile image or null

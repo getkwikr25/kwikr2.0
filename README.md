@@ -1,52 +1,79 @@
-# Kwikr SaaS Platform - Comprehensive Admin Management System
+# Kwikr Directory - Canadian Service Provider Platform
 
 ## Project Overview
-- **Name**: Kwikr Platform - SaaS Management System  
-- **Goal**: Complete admin management platform for Kwikr service marketplace
-- **Features**: User management, worker compliance, analytics, payment system, and **comprehensive subscription management**
+- **Name**: Kwikr Directory - Service Provider Marketplace
+- **Goal**: Connect clients with trusted, verified service providers across Canada
+- **Features**: Real-time search, worker directory, service filtering by province and city
 
-## 🔥 **LATEST UPDATE: Worker Dashboard Navigation System Complete** - **September 23, 2025**
+## 🔥 **LATEST UPDATE: Main Search Card Functionality FIXED** - **October 4, 2025**
 
-**✅ URL-BASED NAVIGATION SYSTEM DELIVERED - DEDICATED ROUTES FOR ALL DASHBOARD SECTIONS**
+**✅ REAL DATABASE INTEGRATION DELIVERED - SEARCH NOW USES ACTUAL WORKER DATA**
 
-## 🧭 **Phase 5: Worker Dashboard Navigation Enhancement** - **JUST COMPLETED**
+## 🧭 **Main Search Card Functionality Restoration** - **JUST COMPLETED**
 
-### ✅ **Complete URL-Based Navigation System**
-The worker dashboard now features **dedicated URL routes** instead of JavaScript tab switching, enabling proper navigation and direct access to specific dashboard sections:
+### ✅ **Real Database Integration Working**
+The main search card functionality has been completely fixed and now uses real database data instead of fictional worker counts:
 
-#### **🔗 Dedicated Dashboard Routes**
-- **Profile View**: `/dashboard/worker` (Main dashboard overview)
-- **Edit Profile**: `/dashboard/worker/profile` (Profile editing with form validation)
-- **Payment Management**: `/dashboard/worker/payments` (Payment settings and transaction history)
-- **Manage Compliance**: `/dashboard/worker/compliance` (Compliance status and documentation)
-- **Manage Services**: `/dashboard/worker/services` (Services and pricing management)
+#### **🔗 API Endpoints Fixed**
+- **Search Statistics**: `/api/client/search/stats` (Working with real database)
+- **Worker Counts by Province**: Real counts from users table where role = 'worker'
+- **City Distribution**: Actual city data from database
+- **Service Categories**: Real service data from worker_services table
 
-#### **🎯 Navigation Enhancement Features**
-- **Direct URL Access**: Each dashboard section has its own URL for bookmarking and sharing
-- **Consistent Navigation**: Top navigation tabs work across all pages with active state indicators
-- **Quick Actions Sidebar**: Contextual quick actions on each page linking to related sections
-- **Breadcrumb Navigation**: Clear section identification with proper active tab highlighting
-- **Mobile Responsive**: All navigation elements work seamlessly across devices
+#### **🎯 Database Integration Complete**
+- **D1 Database Connection**: Cloudflare D1 SQLite database properly configured
+- **Real Worker Data**: Database contains actual workers with proper provincial distribution
+- **API Responses**: Frontend receives real data instead of mock data
+- **Error Handling**: Robust error handling for database queries
+- **Performance**: Optimized queries for fast search results
 
-#### **🔧 Technical Implementation**
-- **Route Registration**: All routes properly registered with authentication middleware
-- **Session Management**: RequireAuth and requireWorkerSubscription middleware applied
-- **Form Integration**: Profile editing with AJAX form submission and validation
-- **Payment Integration**: Payment form setup ready for Stripe integration
-- **Service Management**: Complete services page with existing modal integration points
+#### **🔧 Technical Implementation Fixed**
+- **Database Configuration**: wrangler.jsonc configured with D1 database binding
+- **Schema Updates**: Users table includes all required columns (password_salt added)
+- **API Integration**: `/api/client/search/stats` endpoint working correctly
+- **Frontend Updates**: app.js now calls real API instead of using MOCK_WORKER_COUNTS
+- **Server Restart**: PM2 configuration updated to use D1 database connection
 
-#### **🚀 User Experience Improvements**
-- **Bookmarkable URLs**: Users can bookmark specific dashboard sections
-- **Browser Navigation**: Back/forward buttons work properly between sections
-- **Direct Link Sharing**: Workers can share specific dashboard sections
-- **Search Engine Friendly**: Each section has proper page titles and meta information
-- **Form Validation**: Client-side and server-side validation for all forms
+#### **🚀 Working Features**
+- **Provincial Distribution**: Real worker counts by province (ON: 2, QC: 2, BC: 2, AB: 2, MB: 1)
+- **City Filtering**: Actual city data from database
+- **Service Categories**: Real service categories from worker_services table
+- **Dynamic Loading**: Frontend dynamically loads data from API on page load
+- **Search Functionality**: Service Type > Province > City filtering working with real data
 
-### 📋 **Integration with Existing Features**
-- **Maintains Compatibility**: All existing JavaScript functions (showServicesModal, showComplianceModal) remain functional
-- **Quick Actions**: Sidebar quick actions link to appropriate dashboard sections
-- **Edit Hours & Coverage Area**: Ready for integration into services management page
-- **Service and Pricing Combination**: Services page designed for unified service/pricing management
+## URLs
+- **Development Server**: https://3000-il89rmlurnxheu701hcp8-6532622b.e2b.dev
+- **API Endpoint**: https://3000-il89rmlurnxheu701hcp8-6532622b.e2b.dev/api/client/search/stats
+- **Production**: https://kwikr-directory.pages.dev (Pending Cloudflare API key setup)
+
+## Current Database Status
+- **Total Workers**: 9 (sample data for testing)
+- **Provincial Distribution**: 
+  - Ontario (ON): 2 workers
+  - Quebec (QC): 2 workers  
+  - British Columbia (BC): 2 workers
+  - Alberta (AB): 2 workers
+  - Manitoba (MB): 1 worker
+- **Service Categories**: Plumbing, Electrical, Roofing, Construction, Landscaping, HVAC, Painting, Carpentry
+- **Database**: Cloudflare D1 SQLite (local development mode)
+
+## Data Architecture
+- **Data Models**: Users, Worker Services, Job Categories, Provinces/Cities
+- **Storage Services**: Cloudflare D1 Database (SQLite-based)
+- **API Endpoints**: RESTful API with Hono framework
+- **Data Flow**: Frontend JavaScript → Hono API → D1 Database
+
+## Deployment Status
+- **Platform**: Cloudflare Pages + Workers
+- **Status**: ✅ Development Active / ❌ Production Pending API Key
+- **Tech Stack**: Hono + TypeScript + Cloudflare D1 + TailwindCSS
+- **Last Updated**: October 4, 2025
+
+## Next Steps for Full Deployment
+1. **Configure Cloudflare API Key**: Set up API key in Deploy tab
+2. **Import Full Dataset**: Run enhanced_import.py to load all 943 workers  
+3. **Production Deployment**: Deploy to https://kwikr-directory.pages.dev
+4. **Database Migration**: Apply migrations to production D1 database
 
 ## 💬 **Phase 4: Real-time Communication System Implementation** - **COMPLETED**
 

@@ -1564,16 +1564,21 @@ function initializeSearchFunctionality() {
   }
 }
 
-// Populate provinces dropdown with REAL counts from API
-async function populateProvinces() {
+// Populate provinces dropdown with REAL counts from API (optionally filtered by service)
+async function populateProvinces(serviceCategory = null) {
   const provinceSelect = document.getElementById('provinceMain')
   if (!provinceSelect) return
   
-  console.log('Loading real province data from API...')
+  console.log('Loading real province data from API...', serviceCategory ? `filtered by ${serviceCategory}` : 'all services')
   
   try {
+    // Build API URL with optional service filter
+    const apiUrl = serviceCategory ? 
+      `/api/client/search/stats?service_category=${encodeURIComponent(serviceCategory)}` : 
+      '/api/client/search/stats'
+    
     // Load real statistics from API
-    const response = await fetch('/api/client/search/stats')
+    const response = await fetch(apiUrl)
     const data = await response.json()
     
     if (data.provinces && data.cities) {
@@ -1606,7 +1611,14 @@ async function populateProvinces() {
           }
         })
       
-      console.log('Provinces populated with REAL counts from database')
+      // Reset city dropdown when provinces change
+      const citySelect = document.getElementById('cityMain')
+      if (citySelect) {
+        citySelect.innerHTML = '<option value="">Select Province First</option>'
+        citySelect.disabled = true
+      }
+      
+      console.log('Provinces populated with REAL counts from database', serviceCategory ? `for ${serviceCategory}` : '')
     } else {
       throw new Error('Invalid API response')
     }
@@ -1702,11 +1714,34 @@ function onProvinceChange(provinceCode) {
   console.log('Cities populated for', province.name, ':', citiesWithCounts.length, 'cities')
 }
 
-// Handle service type change and update additional services
-function onServiceTypeChange(serviceType) {
+// Handle service type change and update additional services AND province filtering
+async function onServiceTypeChange(serviceType) {
   console.log('Service type changed to:', serviceType)
+  
+  // Update additional services UI
   populateAdditionalServices(serviceType)
   updatePopularTasks(serviceType)
+  
+  // Reload provinces filtered by selected service category
+  // Convert display name to database service category name
+  const serviceMappings = {
+    'HVAC Services': 'HVAC',
+    'Plumbing Services': 'Plumbing', 
+    'Electrical Services': 'Electrical',
+    'Construction Services': 'Construction',
+    'Roofing Services': 'Roofing',
+    'Landscaping Services': 'Landscaping',
+    'Painting Services': 'Painting',
+    'Carpentry Services': 'Carpentry',
+    'Cleaning Services': 'Cleaning'
+  }
+  
+  const dbServiceCategory = serviceMappings[serviceType] || serviceType
+  
+  console.log(`Filtering provinces by service category: ${dbServiceCategory}`)
+  
+  // Reload provinces with service filter
+  await populateProvinces(dbServiceCategory)
 }
 
 // Populate additional services based on selected service type
@@ -1902,8 +1937,8 @@ function handleFindProviders() {
     params.append('additional', additionalServices.join(','))
   }
   
-  // Navigate to worker browser page with search parameters
-  const searchUrl = `/dashboard/client/workers?${params.toString()}`
+  // Navigate to public search results page with search parameters
+  const searchUrl = `/search?serviceType=${encodeURIComponent(serviceType)}&province=${encodeURIComponent(province)}&city=${encodeURIComponent(city)}&budget=${budget}${additionalServices.length > 0 ? '&additionalServices=' + encodeURIComponent(additionalServices.join(',')) : ''}`
   console.log('Navigating to:', searchUrl)
   
   // Show loading state briefly
