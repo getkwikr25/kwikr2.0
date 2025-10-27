@@ -1,13 +1,13 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "kwikr-directory",
+  "name": "kwikr-directory-v2",
   "compatibility_date": "2024-01-01",
   "compatibility_flags": ["nodejs_compat"],
   "pages_build_output_dir": "./dist",
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "kwikr-directory-production",
+      "database_name": "kwikr-directory-v2-production",
       "database_id": "05ce0b53-c271-4359-af93-b67476531f24"
     }
   ]
