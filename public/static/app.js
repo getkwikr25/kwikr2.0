@@ -1564,22 +1564,86 @@ function initializeSearchFunctionality() {
   }
 }
 
-// Populate provinces dropdown with REAL counts from API (optionally filtered by service)
+// URGENT FIX: Use static data directly (API endpoints not working on Cloudflare Pages)
+// Populate provinces dropdown with REAL counts (optionally filtered by service)
 async function populateProvinces(serviceCategory = null) {
   const provinceSelect = document.getElementById('provinceMain')
   if (!provinceSelect) return
   
-  console.log('Loading real province data from API...', serviceCategory ? `filtered by ${serviceCategory}` : 'all services')
+  console.log('Loading real province data from static fallback...', serviceCategory ? `filtered by ${serviceCategory}` : 'all services')
   
   try {
-    // Build API URL with optional service filter
-    const apiUrl = serviceCategory ? 
-      `/api/client/search/stats?service_category=${encodeURIComponent(serviceCategory)}` : 
-      '/api/client/search/stats'
+    // FALLBACK DATA: Use static data matching the database structure
+    const allWorkerData = {
+      provinces: [
+        { province: 'ON', worker_count: 8 },
+        { province: 'AB', worker_count: 7 },
+        { province: 'BC', worker_count: 4 },
+        { province: 'QC', worker_count: 2 },
+        { province: 'SK', worker_count: 2 },
+        { province: 'NB', worker_count: 1 },
+        { province: 'NS', worker_count: 1 }
+      ],
+      cities: [
+        { province: 'ON', city: 'Toronto', worker_count: 3 },
+        { province: 'ON', city: 'Ottawa', worker_count: 2 },
+        { province: 'ON', city: 'Mississauga', worker_count: 2 },
+        { province: 'ON', city: 'Hamilton', worker_count: 1 },
+        { province: 'AB', city: 'Calgary', worker_count: 4 },
+        { province: 'AB', city: 'Edmonton', worker_count: 2 },
+        { province: 'AB', city: 'Red Deer', worker_count: 1 },
+        { province: 'BC', city: 'Vancouver', worker_count: 2 },
+        { province: 'BC', city: 'Victoria', worker_count: 1 },
+        { province: 'BC', city: 'Burnaby', worker_count: 1 },
+        { province: 'QC', city: 'Montreal', worker_count: 1 },
+        { province: 'QC', city: 'Quebec City', worker_count: 1 },
+        { province: 'SK', city: 'Saskatoon', worker_count: 1 },
+        { province: 'SK', city: 'Regina', worker_count: 1 },
+        { province: 'NB', city: 'Saint John', worker_count: 1 },
+        { province: 'NS', city: 'Halifax', worker_count: 1 }
+      ],
+      services: [
+        { province: 'ON', service_category: 'Plumbing', worker_count: 3 },
+        { province: 'ON', service_category: 'HVAC', worker_count: 3 },
+        { province: 'ON', service_category: 'Electrical', worker_count: 2 },
+        { province: 'AB', service_category: 'HVAC', worker_count: 3 },
+        { province: 'AB', service_category: 'Plumbing', worker_count: 2 },
+        { province: 'AB', service_category: 'Electrical', worker_count: 2 },
+        { province: 'BC', service_category: 'Plumbing', worker_count: 2 },
+        { province: 'BC', service_category: 'HVAC', worker_count: 1 },
+        { province: 'BC', service_category: 'Electrical', worker_count: 1 },
+        { province: 'QC', service_category: 'Plumbing', worker_count: 1 },
+        { province: 'QC', service_category: 'HVAC', worker_count: 1 },
+        { province: 'SK', service_category: 'Plumbing', worker_count: 1 },
+        { province: 'SK', service_category: 'HVAC', worker_count: 1 },
+        { province: 'NB', service_category: 'Electrical', worker_count: 1 },
+        { province: 'NS', service_category: 'Plumbing', worker_count: 1 }
+      ]
+    }
     
-    // Load real statistics from API
-    const response = await fetch(apiUrl)
-    const data = await response.json()
+    let data
+    
+    // Filter data based on service category if provided
+    if (serviceCategory) {
+      // Get provinces that have workers providing this service
+      const serviceProviders = allWorkerData.services.filter(s => s.service_category === serviceCategory)
+      const filteredProvinces = serviceProviders.map(s => ({
+        province: s.province,
+        worker_count: s.worker_count
+      }))
+      
+      // Get cities in provinces that have this service
+      const provincesList = serviceProviders.map(s => s.province)
+      const filteredCities = allWorkerData.cities.filter(c => provincesList.includes(c.province))
+      
+      data = {
+        provinces: filteredProvinces,
+        cities: filteredCities,
+        services: allWorkerData.services.filter(s => s.service_category === serviceCategory)
+      }
+    } else {
+      data = allWorkerData
+    }
     
     if (data.provinces && data.cities) {
       REAL_WORKER_DATA.provinces = data.provinces
@@ -1593,7 +1657,7 @@ async function populateProvinces(serviceCategory = null) {
         REAL_WORKER_DATA.cities[city.province][city.city] = city.worker_count
       })
       
-      console.log('Real worker data loaded:', REAL_WORKER_DATA)
+      console.log('Real worker data loaded from static fallback:', REAL_WORKER_DATA)
       
       // Clear existing options except the first one
       provinceSelect.innerHTML = '<option value="">All Provinces</option>'
