@@ -9,6 +9,15 @@ type Bindings = {
 
 const clientRoutes = new Hono<{ Bindings: Bindings }>()
 
+// Test endpoint to verify client routes are working
+clientRoutes.get('/test', (c) => {
+  return c.json({ 
+    message: 'Client routes are working',
+    timestamp: new Date().toISOString(),
+    path: c.req.path 
+  })
+})
+
 // Middleware to require client authentication
 const requireClientAuth = async (c: any, next: any) => {
   // Try to get session token from multiple sources:
