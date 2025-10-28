@@ -357,6 +357,18 @@ clientRoutes.get('/search/stats', async (c) => {
   try {
     const serviceCategory = c.req.query('service_category') // Optional service filter
     
+    // Check if database is available
+    if (!c.env?.DB) {
+      console.error('Database binding not available - c.env.DB is undefined')
+      return c.json({ 
+        error: 'Database not available', 
+        debug: 'D1 binding not configured properly',
+        provinces: [],
+        cities: [],
+        services: []
+      }, 503)
+    }
+    
     let provinceQuery, cityQuery, serviceQuery
     let params = []
     
@@ -402,7 +414,7 @@ clientRoutes.get('/search/stats', async (c) => {
       `
     }
 
-    // Execute queries
+    // Execute queries with better error handling
     const provinceStats = await c.env.DB.prepare(provinceQuery).bind(...(serviceCategory ? [serviceCategory] : [])).all()
     const cityStats = await c.env.DB.prepare(cityQuery).bind(...(serviceCategory ? [serviceCategory] : [])).all()
 
@@ -419,11 +431,23 @@ clientRoutes.get('/search/stats', async (c) => {
     return c.json({
       provinces: provinceStats.results || [],
       cities: cityStats.results || [],
-      services: serviceStats.results || []
+      services: serviceStats.results || [],
+      debug: {
+        serviceCategory: serviceCategory || 'all',
+        provinceCount: provinceStats.results?.length || 0,
+        cityCount: cityStats.results?.length || 0,
+        serviceCount: serviceStats.results?.length || 0
+      }
     })
   } catch (error) {
     console.error('Search stats error:', error)
-    return c.json({ error: 'Failed to get search statistics' }, 500)
+    return c.json({ 
+      error: 'Failed to get search statistics', 
+      debug: error.message,
+      provinces: [],
+      cities: [],
+      services: []
+    }, 500)
   }
 })
 

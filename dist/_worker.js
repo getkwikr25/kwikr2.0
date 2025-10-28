@@ -2359,7 +2359,7 @@ var Rc=Object.defineProperty;var Ln=e=>{throw TypeError(e)};var Cc=(e,t,s)=>t in
       WHERE ${l.join(" AND ")}
       ORDER BY avg_rating DESC NULLS LAST, u.created_at DESC
       LIMIT ? OFFSET ?
-    `).bind(...d).all();return e.json({workers:c.results||[],pagination:{page:a,limit:n,total:((t=c.results)==null?void 0:t.length)||0,pages:1}})}catch(s){return console.error("Search workers error:",s),e.json({error:"Failed to search workers"},500)}});we.get("/search/stats",async e=>{try{const t=e.req.query("service_category");let s,r,i,a=[];t?(s=`
+    `).bind(...d).all();return e.json({workers:c.results||[],pagination:{page:a,limit:n,total:((t=c.results)==null?void 0:t.length)||0,pages:1}})}catch(s){return console.error("Search workers error:",s),e.json({error:"Failed to search workers"},500)}});we.get("/search/stats",async e=>{var t,s,r,i;try{const a=e.req.query("service_category");if(!((t=e.env)!=null&&t.DB))return console.error("Database binding not available - c.env.DB is undefined"),e.json({error:"Database not available",debug:"D1 binding not configured properly",provinces:[],cities:[],services:[]},503);let n,o,l,d=[];a?(n=`
         SELECT u.province, COUNT(DISTINCT u.id) as worker_count
         FROM users u
         JOIN worker_services ws ON u.id = ws.user_id
@@ -2367,7 +2367,7 @@ var Rc=Object.defineProperty;var Ln=e=>{throw TypeError(e)};var Cc=(e,t,s)=>t in
         AND ws.service_category = ?
         GROUP BY u.province 
         ORDER BY worker_count DESC
-      `,r=`
+      `,o=`
         SELECT u.province, u.city, COUNT(DISTINCT u.id) as worker_count
         FROM users u
         JOIN worker_services ws ON u.id = ws.user_id
@@ -2375,26 +2375,26 @@ var Rc=Object.defineProperty;var Ln=e=>{throw TypeError(e)};var Cc=(e,t,s)=>t in
         AND u.city IS NOT NULL AND ws.service_category = ?
         GROUP BY u.province, u.city 
         ORDER BY u.province, worker_count DESC
-      `,a=[t,t]):(s=`
+      `,d=[a,a]):(n=`
         SELECT province, COUNT(*) as worker_count
         FROM users 
         WHERE role = 'worker' AND is_active = 1 
         GROUP BY province 
         ORDER BY worker_count DESC
-      `,r=`
+      `,o=`
         SELECT province, city, COUNT(*) as worker_count
         FROM users 
         WHERE role = 'worker' AND is_active = 1 AND city IS NOT NULL
         GROUP BY province, city 
         ORDER BY province, worker_count DESC
-      `);const n=await e.env.DB.prepare(s).bind(...t?[t]:[]).all(),o=await e.env.DB.prepare(r).bind(...t?[t]:[]).all(),l=await e.env.DB.prepare(`
+      `);const c=await e.env.DB.prepare(n).bind(...a?[a]:[]).all(),u=await e.env.DB.prepare(o).bind(...a?[a]:[]).all(),p=await e.env.DB.prepare(`
       SELECT u.province, ws.service_category, COUNT(DISTINCT u.id) as worker_count
       FROM users u
       JOIN worker_services ws ON u.id = ws.user_id
       WHERE u.role = 'worker' AND u.is_active = 1 AND ws.is_available = 1
       GROUP BY u.province, ws.service_category
       ORDER BY u.province, worker_count DESC
-    `).all();return e.json({provinces:n.results||[],cities:o.results||[],services:l.results||[]})}catch(t){return console.error("Search stats error:",t),e.json({error:"Failed to get search statistics"},500)}});we.get("/workers/:id",async e=>{try{const t=e.req.param("id"),s=await e.env.DB.prepare(`
+    `).all();return e.json({provinces:c.results||[],cities:u.results||[],services:p.results||[],debug:{serviceCategory:a||"all",provinceCount:((s=c.results)==null?void 0:s.length)||0,cityCount:((r=u.results)==null?void 0:r.length)||0,serviceCount:((i=p.results)==null?void 0:i.length)||0}})}catch(a){return console.error("Search stats error:",a),e.json({error:"Failed to get search statistics",debug:a.message,provinces:[],cities:[],services:[]},500)}});we.get("/workers/:id",async e=>{try{const t=e.req.param("id"),s=await e.env.DB.prepare(`
       SELECT u.id, u.first_name, u.last_name, u.email, u.phone, u.province, u.city,
              up.bio, up.years_in_business as experience_years, up.profile_image_url,
              (SELECT AVG(rating) FROM reviews WHERE reviewee_id = u.id) as avg_rating,
