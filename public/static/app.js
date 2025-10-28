@@ -1712,7 +1712,27 @@ async function populateProvinces(serviceCategory = null) {
         { province: 'BC', service_category: 'Landscaping Services', worker_count: 3 },
         { province: 'AB', service_category: 'Landscaping Services', worker_count: 2 },
         { province: 'QC', service_category: 'Landscaping Services', worker_count: 2 },
-        { province: 'MB', service_category: 'Landscaping Services', worker_count: 1 }
+        { province: 'MB', service_category: 'Landscaping Services', worker_count: 1 },
+        
+        // Painting Services
+        { province: 'ON', service_category: 'Painting Services', worker_count: 45 },
+        { province: 'QC', service_category: 'Painting Services', worker_count: 32 },
+        { province: 'BC', service_category: 'Painting Services', worker_count: 28 },
+        { province: 'AB', service_category: 'Painting Services', worker_count: 22 },
+        { province: 'MB', service_category: 'Painting Services', worker_count: 8 },
+        { province: 'SK', service_category: 'Painting Services', worker_count: 5 },
+        { province: 'NS', service_category: 'Painting Services', worker_count: 3 },
+        { province: 'NB', service_category: 'Painting Services', worker_count: 2 },
+        
+        // Carpentry Services
+        { province: 'ON', service_category: 'Carpentry Services', worker_count: 38 },
+        { province: 'QC', service_category: 'Carpentry Services', worker_count: 25 },
+        { province: 'BC', service_category: 'Carpentry Services', worker_count: 22 },
+        { province: 'AB', service_category: 'Carpentry Services', worker_count: 18 },
+        { province: 'MB', service_category: 'Carpentry Services', worker_count: 6 },
+        { province: 'SK', service_category: 'Carpentry Services', worker_count: 4 },
+        { province: 'NS', service_category: 'Carpentry Services', worker_count: 2 },
+        { province: 'NB', service_category: 'Carpentry Services', worker_count: 1 }
       ]
     }
     
