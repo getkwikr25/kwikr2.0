@@ -1726,14 +1726,17 @@ async function onServiceTypeChange(serviceType) {
   // Convert display name to database service category name
   const serviceMappings = {
     'HVAC Services': 'HVAC',
-    'Plumbing Services': 'Plumbing', 
-    'Electrical Services': 'Electrical',
-    'Construction Services': 'Construction',
-    'Roofing Services': 'Roofing',
-    'Landscaping Services': 'Landscaping',
-    'Painting Services': 'Painting',
-    'Carpentry Services': 'Carpentry',
-    'Cleaning Services': 'Cleaning'
+    'Plumbers': 'Plumbing', 
+    'Electricians': 'Electrical',
+    'General Contractor': 'Construction',
+    'Roofing': 'Roofing',
+    'Landscaping': 'Landscaping',
+    'Painters': 'Painting',
+    'Carpenters': 'Carpentry',
+    'Cleaning Services': 'Cleaning',
+    'Handyman': 'General',
+    'Flooring': 'Flooring',
+    'Renovations': 'Renovation'
   }
   
   const dbServiceCategory = serviceMappings[serviceType] || serviceType
