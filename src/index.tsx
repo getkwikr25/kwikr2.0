@@ -13531,4 +13531,9 @@ app.get('/api/client/workers/search', (c) => {
   }
 })
 
+// Ultra simple test to see if any Hono routes work at all
+app.get('/test-hono', (c) => {
+  return c.text('Hono is working!')
+})
+
 export default app
