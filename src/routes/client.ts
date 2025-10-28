@@ -18,6 +18,18 @@ clientRoutes.get('/test', (c) => {
   })
 })
 
+// Simple stats endpoint without any database dependencies
+clientRoutes.get('/simple-stats', (c) => {
+  return c.json({
+    message: 'Simple stats working',
+    provinces: [
+      { province: 'ON', worker_count: 8 },
+      { province: 'AB', worker_count: 7 }
+    ],
+    total: 25
+  })
+})
+
 // Middleware to require client authentication
 const requireClientAuth = async (c: any, next: any) => {
   // Try to get session token from multiple sources:
