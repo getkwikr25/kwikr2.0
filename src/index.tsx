@@ -13321,4 +13321,15 @@ function getSubscriptionPricingHTML() {
   `;
 }
 
+// Debug endpoint to check available bindings (temporary)
+app.get('/_env', (c) => {
+  const envKeys = Object.keys(c.env || {})
+  return c.json({
+    availableBindings: envKeys,
+    hasDB: !!c.env?.DB,
+    envType: typeof c.env,
+    debug: 'This endpoint shows what bindings are available at runtime'
+  })
+})
+
 export default app

@@ -23278,7 +23278,7 @@ Resolution: ${r.notes}`,!1),await this.notifyDisputeResolved(t,r),await this.can
         <\/script>
     </body>
     </html>
-  `}const Fl=new ce,A0=Object.assign({"/src/index.tsx":D});let yc=!1;for(const[,e]of Object.entries(A0))e&&(Fl.all("*",t=>{let s;try{s=t.executionCtx}catch{}return e.fetch(t.req.raw,t.env,s)}),Fl.notFound(t=>{let s;try{s=t.executionCtx}catch{}return e.fetch(t.req.raw,t.env,s)}),yc=!0);if(!yc)throw new Error("Can't import modules from ['/src/index.ts','/src/index.tsx','/app/server.ts']");class O0{constructor(t,s){this.db=t,this.stripe=s}async createDispute(t,s){try{const r=await this.db.prepare(`
+  `}D.get("/_env",e=>{var s;const t=Object.keys(e.env||{});return e.json({availableBindings:t,hasDB:!!((s=e.env)!=null&&s.DB),envType:typeof e.env,debug:"This endpoint shows what bindings are available at runtime"})});const Fl=new ce,A0=Object.assign({"/src/index.tsx":D});let yc=!1;for(const[,e]of Object.entries(A0))e&&(Fl.all("*",t=>{let s;try{s=t.executionCtx}catch{}return e.fetch(t.req.raw,t.env,s)}),Fl.notFound(t=>{let s;try{s=t.executionCtx}catch{}return e.fetch(t.req.raw,t.env,s)}),yc=!0);if(!yc)throw new Error("Can't import modules from ['/src/index.ts','/src/index.tsx','/app/server.ts']");class O0{constructor(t,s){this.db=t,this.stripe=s}async createDispute(t,s){try{const r=await this.db.prepare(`
         SELECT * FROM invoices WHERE id = ?
       `).bind(t.invoice_id).first();if(!r)return{success:!1,message:"Invoice not found"};if(await this.db.prepare(`
         SELECT id FROM invoice_disputes 
