@@ -1,0 +1,21 @@
+{
+  "functions": {
+    "dist/_worker.js": {
+      "runtime": "@vercel/node"
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/dist/_worker.js"
+    },
+    {
+      "src": "/search(.*)",
+      "dest": "/dist/_worker.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/dist/_worker.js"
+    }
+  ]
+}

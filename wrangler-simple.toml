@@ -1,0 +1,7 @@
+name = "kwikr-platform-2025"
+main = "simple-worker.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[env.production]
+name = "kwikr-platform-2025"
