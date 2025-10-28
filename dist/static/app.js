@@ -1545,8 +1545,25 @@ function initializeSearchFunctionality() {
   if (document.getElementById('provinceMain') && document.getElementById('cityMain')) {
     console.log('Main search functionality initializing...')
     
-    // Populate provinces dropdown
-    populateProvinces()
+    // Populate provinces dropdown with default service filter
+    const defaultServiceType = document.getElementById('serviceTypeMain')?.value || 'Cleaning Services'
+    const serviceMappings = {
+      'HVAC Services': 'HVAC Services',
+      'Plumbers': 'Plumbing Services', 
+      'Electricians': 'Electrical Services',
+      'General Contractor': 'General Contracting Services',
+      'Cleaning Services': 'Cleaning Services',
+      'Roofing': 'Roofing Services',
+      'Landscaping': 'Landscaping Services',
+      'Painters': 'Painting Services',
+      'Carpenters': 'Carpentry Services',
+      'Handyman': 'General Contracting Services',
+      'Flooring': 'Flooring Services',
+      'Renovations': 'General Contracting Services'
+    }
+    const dbServiceCategory = serviceMappings[defaultServiceType] || defaultServiceType
+    console.log('Initial page load - filtering by default service:', defaultServiceType, '->', dbServiceCategory)
+    populateProvinces(dbServiceCategory)
     
     // Populate additional services
     populateAdditionalServices('Cleaning Services') // Default
@@ -1656,7 +1673,7 @@ async function populateProvinces(serviceCategory = null) {
         { province: 'NS', service_category: 'Cleaning Services', worker_count: 1 },
         { province: 'NL', service_category: 'Cleaning Services', worker_count: 1 },
         
-        // General Contracting Services
+        // General Contracting Services  
         { province: 'ON', service_category: 'General Contracting Services', worker_count: 60 },
         { province: 'QC', service_category: 'General Contracting Services', worker_count: 43 },
         { province: 'AB', service_category: 'General Contracting Services', worker_count: 39 },
@@ -1667,7 +1684,35 @@ async function populateProvinces(serviceCategory = null) {
         { province: 'NB', service_category: 'General Contracting Services', worker_count: 4 },
         { province: 'YT', service_category: 'General Contracting Services', worker_count: 1 },
         { province: 'NL', service_category: 'General Contracting Services', worker_count: 1 },
-        { province: 'PE', service_category: 'General Contracting Services', worker_count: 1 }
+        { province: 'PE', service_category: 'General Contracting Services', worker_count: 1 },
+        
+        // Flooring Services
+        { province: 'ON', service_category: 'Flooring Services', worker_count: 91 },
+        { province: 'QC', service_category: 'Flooring Services', worker_count: 69 },
+        { province: 'BC', service_category: 'Flooring Services', worker_count: 43 },
+        { province: 'AB', service_category: 'Flooring Services', worker_count: 27 },
+        { province: 'MB', service_category: 'Flooring Services', worker_count: 11 },
+        { province: 'SK', service_category: 'Flooring Services', worker_count: 5 },
+        { province: 'NB', service_category: 'Flooring Services', worker_count: 3 },
+        { province: 'NS', service_category: 'Flooring Services', worker_count: 3 },
+        { province: 'NL', service_category: 'Flooring Services', worker_count: 1 },
+        { province: 'YT', service_category: 'Flooring Services', worker_count: 1 },
+        
+        // Roofing Services
+        { province: 'ON', service_category: 'Roofing Services', worker_count: 34 },
+        { province: 'QC', service_category: 'Roofing Services', worker_count: 21 },
+        { province: 'AB', service_category: 'Roofing Services', worker_count: 11 },
+        { province: 'BC', service_category: 'Roofing Services', worker_count: 10 },
+        { province: 'MB', service_category: 'Roofing Services', worker_count: 3 },
+        { province: 'SK', service_category: 'Roofing Services', worker_count: 2 },
+        { province: 'NS', service_category: 'Roofing Services', worker_count: 2 },
+        
+        // Landscaping Services  
+        { province: 'ON', service_category: 'Landscaping Services', worker_count: 10 },
+        { province: 'BC', service_category: 'Landscaping Services', worker_count: 3 },
+        { province: 'AB', service_category: 'Landscaping Services', worker_count: 2 },
+        { province: 'QC', service_category: 'Landscaping Services', worker_count: 2 },
+        { province: 'MB', service_category: 'Landscaping Services', worker_count: 1 }
       ]
     }
     
@@ -1675,15 +1720,27 @@ async function populateProvinces(serviceCategory = null) {
     
     // Filter data based on service category if provided
     if (serviceCategory) {
+      console.log('FILTERING BY SERVICE CATEGORY:', serviceCategory)
+      
       // Get provinces that have workers providing this service
       const serviceProviders = allWorkerData.services.filter(s => s.service_category === serviceCategory)
-      const filteredProvinces = serviceProviders.map(s => ({
-        province: s.province,
-        worker_count: s.worker_count
-      }))
+      console.log('Service providers found:', serviceProviders)
+      
+      // Aggregate counts by province for this service
+      const provinceCountMap = {}
+      serviceProviders.forEach(provider => {
+        provinceCountMap[provider.province] = (provinceCountMap[provider.province] || 0) + provider.worker_count
+      })
+      
+      const filteredProvinces = Object.keys(provinceCountMap).map(province => ({
+        province: province,
+        worker_count: provinceCountMap[province]
+      })).filter(p => p.worker_count > 0)
+      
+      console.log('Filtered provinces for', serviceCategory, ':', filteredProvinces)
       
       // Get cities in provinces that have this service
-      const provincesList = serviceProviders.map(s => s.province)
+      const provincesList = filteredProvinces.map(p => p.province)
       const filteredCities = allWorkerData.cities.filter(c => provincesList.includes(c.province))
       
       data = {
@@ -1692,6 +1749,7 @@ async function populateProvinces(serviceCategory = null) {
         services: allWorkerData.services.filter(s => s.service_category === serviceCategory)
       }
     } else {
+      console.log('NO SERVICE FILTER - showing all provinces')
       data = allWorkerData
     }
     
@@ -1848,9 +1906,9 @@ async function onServiceTypeChange(serviceType) {
     'Landscaping': 'Landscaping Services',
     'Painters': 'Painting Services',
     'Carpenters': 'Carpentry Services',
-    'Handyman': 'General Services',
+    'Handyman': 'General Contracting Services', // Handyman maps to General Contracting
     'Flooring': 'Flooring Services',
-    'Renovations': 'Renovation Services'
+    'Renovations': 'General Contracting Services' // Renovations also map to General Contracting
   }
   
   const dbServiceCategory = serviceMappings[serviceType] || serviceType
