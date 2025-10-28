@@ -1740,24 +1740,35 @@ async function populateProvinces(serviceCategory = null) {
     
     // Filter data based on service category if provided
     if (serviceCategory) {
-      console.log('FILTERING BY SERVICE CATEGORY:', serviceCategory)
+      console.log('🎯 FILTERING BY SERVICE CATEGORY:', serviceCategory)
+      console.log('📊 Total services in database:', allWorkerData.services.length)
       
       // Get provinces that have workers providing this service
       const serviceProviders = allWorkerData.services.filter(s => s.service_category === serviceCategory)
-      console.log('Service providers found:', serviceProviders)
+      console.log('🔍 Service providers found for', serviceCategory, ':', serviceProviders.length, 'records')
+      console.log('📋 Full service provider data:', serviceProviders)
+      
+      if (serviceProviders.length === 0) {
+        console.error('❌ NO SERVICE PROVIDERS FOUND! Available services:')
+        const uniqueServices = [...new Set(allWorkerData.services.map(s => s.service_category))]
+        console.log('Available services:', uniqueServices)
+      }
       
       // Aggregate counts by province for this service
       const provinceCountMap = {}
       serviceProviders.forEach(provider => {
         provinceCountMap[provider.province] = (provinceCountMap[provider.province] || 0) + provider.worker_count
+        console.log(`➕ Adding ${provider.worker_count} workers in ${provider.province} for ${serviceCategory}`)
       })
+      
+      console.log('🗺️ Province count map:', provinceCountMap)
       
       const filteredProvinces = Object.keys(provinceCountMap).map(province => ({
         province: province,
         worker_count: provinceCountMap[province]
       })).filter(p => p.worker_count > 0)
       
-      console.log('Filtered provinces for', serviceCategory, ':', filteredProvinces)
+      console.log('✅ Filtered provinces for', serviceCategory, ':', filteredProvinces)
       
       // Get cities in provinces that have this service
       const provincesList = filteredProvinces.map(p => p.province)
@@ -1769,7 +1780,7 @@ async function populateProvinces(serviceCategory = null) {
         services: allWorkerData.services.filter(s => s.service_category === serviceCategory)
       }
     } else {
-      console.log('NO SERVICE FILTER - showing all provinces')
+      console.log('🌍 NO SERVICE FILTER - showing all provinces')
       data = allWorkerData
     }
     
@@ -1908,7 +1919,7 @@ function onProvinceChange(provinceCode) {
 
 // Handle service type change and update additional services AND province filtering
 async function onServiceTypeChange(serviceType) {
-  console.log('Service type changed to:', serviceType)
+  console.log('🔧 SERVICE TYPE CHANGED TO:', serviceType)
   
   // Update additional services UI
   populateAdditionalServices(serviceType)
@@ -1924,8 +1935,8 @@ async function onServiceTypeChange(serviceType) {
     'Cleaning Services': 'Cleaning Services',
     'Roofing': 'Roofing Services',
     'Landscaping': 'Landscaping Services',
-    'Painters': 'Painting Services',
-    'Carpenters': 'Carpentry Services',
+    'Painters': 'Painting Services', // Note: might need to be 'Professional Painting Services'
+    'Carpenters': 'Carpentry Services', // Note: might need to be 'General Contracting Services'
     'Handyman': 'General Contracting Services', // Handyman maps to General Contracting
     'Flooring': 'Flooring Services',
     'Renovations': 'General Contracting Services' // Renovations also map to General Contracting
@@ -1933,10 +1944,27 @@ async function onServiceTypeChange(serviceType) {
   
   const dbServiceCategory = serviceMappings[serviceType] || serviceType
   
-  console.log(`Filtering provinces by service category: ${dbServiceCategory}`)
+  console.log(`🎯 MAPPING: "${serviceType}" → "${dbServiceCategory}"`)
+  
+  // CRITICAL DEBUG: Show what data we have for this service
+  console.log('🔍 CHECKING AVAILABLE DATA FOR SERVICE:', dbServiceCategory)
+  const testData = {
+    'Plumbing Services': 'ON: 21, QC: 16, BC: 17, AB: 10',
+    'Electrical Services': 'ON: 88, AB: 60, BC: 48, QC: 19', 
+    'HVAC Services': 'ON: 5, AB: 5, BC: 3, QC: 1',
+    'Cleaning Services': 'ON: 33, QC: 10, BC: 8, AB: 8',
+    'General Contracting Services': 'ON: 60, QC: 43, AB: 39, BC: 37',
+    'Flooring Services': 'ON: 91, QC: 69, BC: 43, AB: 27',
+    'Roofing Services': 'ON: 34, QC: 21, AB: 11, BC: 10',
+    'Landscaping Services': 'ON: 10, BC: 3, AB: 2, QC: 2'
+  }
+  console.log('Expected results:', testData[dbServiceCategory] || 'NO DATA FOUND FOR THIS SERVICE!')
   
   // Reload provinces with service filter
+  console.log('🚀 CALLING populateProvinces WITH:', dbServiceCategory)
   await populateProvinces(dbServiceCategory)
+  
+  console.log('✅ onServiceTypeChange COMPLETE')
 }
 
 // Populate additional services based on selected service type
